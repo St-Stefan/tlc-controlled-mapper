@@ -414,11 +414,14 @@ public class TLC {
         int index = 0;
 		while (index < args.length)
         {
-            if (args[index].equals("-simulate") || args[index].equals("-generate"))
+            if (args[index].equals("-simulate") || args[index].equals("-generate") || args[index].equals("-controlled"))
             {
             	if (args[index].equals("-generate")) {
 					System.setProperty(Tool.class.getName() + ".probabilistic", Boolean.TRUE.toString());
             	}
+                if (args[index].equals("-controlled")) {
+                    TLCGlobals.controlled = true;
+                }
             	runMode = RunMode.SIMULATE;
                 index++;
                 
@@ -1164,12 +1167,16 @@ public class TLC {
 					}
 					simulator = new SingleThreadedSimulator(tool, metadir, traceFile, deadlock, traceDepth, 
 	                        traceNum, traceActions, rng, seed, resolver);
-				} else {
-					tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
-					simulator = new Simulator(tool, metadir, traceFile, deadlock, traceDepth, 
-	                        traceNum, traceActions, rng, seed, resolver, TLCGlobals.getNumWorkers());
-				}
-                TLCGlobals.simulator = simulator;
+                } else if(TLCGlobals.controlled) {
+                    tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
+                    simulator = new SingleThreadedSimulator(tool, metadir, traceFile, deadlock, traceDepth,
+                            traceNum, traceActions, rng, seed, resolver);
+                } else {
+                    tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
+                    simulator = new Simulator(tool, metadir, traceFile, deadlock, traceDepth,
+                            traceNum, traceActions, rng, seed, resolver, TLCGlobals.getNumWorkers());
+                }
+				TLCGlobals.simulator = simulator;
                 result = simulator.simulate();
 			} else { // RunMode.MODEL_CHECK
 				if (noSeed) {

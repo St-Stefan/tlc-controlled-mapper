@@ -186,6 +186,9 @@ public class TLCGlobals
     // format messages easy for parsing
     public static boolean tool = false;
 
+    // true for controlled steps in simulation
+    public static boolean controlled = false;
+
 	public static boolean isValidSetSize(final int bound) {
 		if (bound < 1) {
 			return false;

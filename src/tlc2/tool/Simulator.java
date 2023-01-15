@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import tla2sany.st.Location;
 import tlc2.TLCGlobals;
+import tlc2.controlled.ControlledWorker;
 import tlc2.module.TLCGetSet;
 import tlc2.output.EC;
 import tlc2.output.MP;
@@ -125,9 +126,15 @@ public class Simulator {
 						this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
 						this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
 			} else {
-				this.workers.add(new SimulationWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
-						this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
-						this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
+				if(TLCGlobals.controlled) {
+					this.workers.add(new ControlledWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
+							this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
+							this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
+				} else {
+					this.workers.add(new SimulationWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
+							this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
+							this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
+				}
 			}
 		}
 	
@@ -552,8 +559,12 @@ public class Simulator {
 					String.valueOf(numOfGenTraces.longValue()));
 		}
 
-		MP.printMessage(EC.TLC_STATS_SIMU, new String[] { String.valueOf(numOfGenStates.longValue()),
-				String.valueOf(this.seed), String.valueOf(this.aril) });
+		// TODO report stats for the controlled simulation
+
+		if (!TLCGlobals.controlled) {
+			MP.printMessage(EC.TLC_STATS_SIMU, new String[]{String.valueOf(numOfGenStates.longValue()),
+					String.valueOf(this.seed), String.valueOf(this.aril)});
+		}
 	}
 
 	/**
