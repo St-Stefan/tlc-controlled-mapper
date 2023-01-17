@@ -220,12 +220,15 @@ public final class Context implements Iterator<Context> {
 		return false;
 	}
 
+	// Fixed: The prev version hits NPR if called with an empty context, where next() is null!
 	public final int depth() {
 		int depth = 1;
 		Context child = next();
-		while (child.hasNext()) {
-			depth++;
-			child = child.next();
+		if(child != null) {
+			while (child.hasNext()) {
+				depth++;
+				child = child.next();
+			}
 		}
 		return depth;
 	}
