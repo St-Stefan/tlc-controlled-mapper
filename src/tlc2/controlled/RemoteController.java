@@ -1,0 +1,113 @@
+package tlc2.controlled;
+
+import tlc2.controlled.protocol.ActionMapper;
+import tlc2.tool.Action;
+import tlc2.tool.TLCState;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+public class RemoteController extends ActionController {
+
+    private final Thread serverThread;
+    private final BlockingQueue<String> actionQueue;
+    private final BlockingQueue<String> stateQueue;
+
+    public RemoteController(ActionMapper mapper, TLCState initialState) {
+        super(mapper);
+        actionQueue = new ArrayBlockingQueue<String>(1);
+        stateQueue = new ArrayBlockingQueue<String>(1);
+        serverThread = new Thread(new MyServer(actionQueue, stateQueue, "q"));
+        serverThread.start();
+
+        setCurrentState(initialState);
+    }
+
+    @Override
+    public Action getNextAction(Action[] validActions) {
+        Action nextAction = null;
+
+        try {
+            String inputStr = actionQueue.take();
+            System.out.println("Received: " + inputStr);
+            nextAction = mapper.map(inputStr);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            System.out.println("Unknown action");
+            nextAction = Action.UNKNOWN;
+        }
+
+        return nextAction;
+    }
+
+    @Override
+    public void setCurrentState(TLCState state) {
+        try {
+            String message = "";
+            if(state == null) {
+                message = "No next state for that action. Choose again.\n";
+            } else {
+                message = state.toString() + "\n";
+            }
+
+            stateQueue.put(message);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean isServerThreadAlive() {
+        return serverThread.isAlive();
+    }
+
+    private static class MyServer implements Runnable {
+
+        private final BlockingQueue<String> actionQueue;
+        private final BlockingQueue<String> stateQueue;
+        private final String escapeStr;
+
+        public MyServer(BlockingQueue<String> actionQueue, BlockingQueue<String> stateQueue, String escapeStr) {
+            this.actionQueue = actionQueue;
+            this.stateQueue = stateQueue;
+            this.escapeStr = escapeStr;
+        }
+
+        @Override
+        public void run() {
+            System.out.println("Server starts listening");
+            try {
+                ServerSocket ss =new ServerSocket(2023);
+                Socket socket = ss.accept();
+                InputStream input = socket.getInputStream();
+                OutputStream output = socket.getOutputStream();
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+
+                String actionStr = "";
+                String stateStr = "";
+                while(!actionStr.equalsIgnoreCase(escapeStr)) {
+                    // send the current state tp the remote process
+                    stateStr = stateQueue.take();
+                    output.write(stateStr.getBytes(StandardCharsets.UTF_8));
+
+                    // get the next action from the remote process
+                    actionStr = reader.readLine();  // reads a single character
+                    actionQueue.add(actionStr);
+                }
+
+                actionQueue.add(escapeStr);
+                System.out.println("Stopping server");
+                ss.close();
+            } catch(Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+    }
+}

@@ -33,6 +33,8 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.function.Supplier;
 
 import tlc2.TLCGlobals;
+import tlc2.controlled.protocol.ActionMapper;
+import tlc2.controlled.protocol.AbstractToTLAActionMapper;
 import tlc2.tool.*;
 import tlc2.tool.liveness.ILiveCheck;
 import tlc2.util.RandomGenerator;
@@ -108,7 +110,7 @@ public class ControlledWorker extends SimulationWorker {
 	 * This method returns a state that is randomly chosen from the set of states.
 	 * It returns null if the set of states is empty.
 	 */
-	private final TLCState randomState(RandomGenerator rng, StateVec states) {
+	private TLCState randomState(RandomGenerator rng, StateVec states) {
 		final int len = states.size();
 		if (len > 0) {
 			final int index = (int) Math.floor(rng.nextDouble() * len);
@@ -127,7 +129,7 @@ public class ControlledWorker extends SimulationWorker {
 	}
 
 	/**
-	 * Generates a single random trace.
+	 * Generates a single trace controlled by an ActionController.
 	 *
 	 * The core steps of this process are as follows:
 	 * 
@@ -144,17 +146,17 @@ public class ControlledWorker extends SimulationWorker {
 	 */
 	private Optional<SimulationWorker.SimulationWorkerError> simulateRandomTrace() throws Exception {
 
-		ActionController controller = new CmdLineController(initStates.elementAt(0));
-
 		// a) Randomly select a state from the set of init states.
 		assert(initStates.size() == 1);
 		curState = randomState(this.localRng, initStates);
 		setCurrentState(curState);
 
-		System.out.println("Initial state: " + curState); //B
+		System.out.println("[Worker] Initial state: " + curState);
+
+		ActionMapper mapper = new AbstractToTLAActionMapper(Arrays.asList(this.tool.getActions()));
+		ActionController controller = new RemoteController(mapper, curState); //new CmdLineController(mapper, initStates.elementAt(0));
 
 		final Action[] actions = this.tool.getActions();
-		final int len = actions.length;
 		boolean quit = false;
 
 		// Simulate a trace up to the maximum specified length.
@@ -167,75 +169,46 @@ public class ControlledWorker extends SimulationWorker {
 			// b) Get the current state's successor states.
 
 			nextStates.clear();
-			int index = 0;
-			//int index = controller.getNextAction(actions);
-
-			// int index = getNextActionIndex(this.localRng, actions, curState);
-			//final int p = this.localRng.nextPrime();
-			//for (int i = 0; i < len; i++) {
-
-			while(nextStates.size() == 0) {
+			Action a;
+			while(nextStates.empty()) {
 				try {
-					index = controller.getNextAction(actions);
-					if(index < 0) {
-						System.out.println("Selected to quit. ");
+					a = controller.getNextAction(actions);
+
+					if(a.equals(Action.UNKNOWN)) {
 						quit = true;
 						break;
-					}
-					System.out.println("Selected next action: " + actions[index].getName());
-					this.tool.getNextStates(this, curState, actions[index]);
+					} else {
+						this.tool.getNextStates(this, curState, a); // fills in nextStates
 
-					if(nextStates.size() == 0) {
-						System.out.println("No next state for that action. Choose again.\n\n");
+						if(nextStates.empty()) {
+							controller.setCurrentState(curState);
+						}
 					}
 				} catch (SimulationWorkerError swe) {
 					// getNextState doesn't throw SWE unless SimulationWorker#addElement above throws it.
 					return Optional.of(swe);
 				}
-				//if (!nextStates.empty()) {
-				//	break;
-				//}
-				// index = (index + p) % len;
-				//	index = controller.getNextAction(actions);
-				//}
-				//if (nextStates.empty()) {
-				//	if (checkDeadlock) {
-				//		// We get here because of deadlock.
-				//		return Optional.of(new SimulationWorkerError(EC.TLC_DEADLOCK_REACHED, null, curState, getTrace(), null));
-				//	}
-				//	break;
-				//}
-
-				// At this point all generated successor states have been checked for
-				// their respective validity (isGood/isValid/impliedActions/...).
-
-				// TODO Enabled actions and nextStates must match at that point!
 			}
 
-			// Could select the next action
-			// there must be a single next state!
-			if(!quit) {
-				assert (nextStates.size() == 1);
+			// We currently assume there is a single next state
+			assert (nextStates.size() == 1);
 
-				// d) Randomly select one of them and make it the current state for the next iteration of the loop.
-				// final TLCState s1 = randomState(localRng, nextStates);
-				final TLCState s1 = nextStates.elementAt(0);
+			// d) Set the current state for the next iteration of the loop.
+			// final TLCState s1 = randomState(localRng, nextStates);
+			final TLCState s1 = nextStates.elementAt(0);
 
-				// Execute callable on the state that was selected from the set of successor
-				// states.  See TLCExt!TLCDefer operator for context.
-				s1.execCallable();
-				//System.out.printf("%s\n", tool.evalAlias(curState, s1));
+			// Execute callable on the state that was selected from the set of successor
+			// states.  See TLCExt!TLCDefer operator for context.
+			s1.execCallable();
 
-				// In case actionStats are off, we waste a few cycles to increment this counter
-				// nobody is going to look at.
-				if (traceActions != null) {
-					this.actionStats[curState.getAction().getId()][s1.getAction().getId()]++;
-				}
-				curState = s1;
-				setCurrentState(curState);
-				controller.setCurrentState(s1);
+			// In case actionStats are off, we waste a few cycles to increment this counter
+			// nobody is going to look at.
+			if (traceActions != null) {
+				this.actionStats[curState.getAction().getId()][s1.getAction().getId()]++;
 			}
-
+			curState = s1;
+			setCurrentState(curState);
+			controller.setCurrentState(s1);
 		}
 
 		// Check for interruption once more before entering liveness checking.

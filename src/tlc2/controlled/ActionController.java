@@ -1,16 +1,20 @@
 package tlc2.controlled;
 
+import tlc2.controlled.protocol.ActionMapper;
 import tlc2.tool.Action;
-import tlc2.tool.StateVec;
 import tlc2.tool.TLCState;
 
-import java.util.Collection;
+public abstract class ActionController {
 
-public interface ActionController {
+    protected ActionMapper mapper;
 
-    // returns the actionId of the next action
-    int getNextAction(Action[] actions);
+    public ActionController(ActionMapper mapper) {
+        this.mapper = mapper;
+    }
+
+    // returns the next action in jason format
+    public abstract Action getNextAction(Action[] validActions);
 
     // sets the current state of the execution
-    void setCurrentState(TLCState state);
+    public abstract void setCurrentState(TLCState state);
 }
