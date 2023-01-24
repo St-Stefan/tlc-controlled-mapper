@@ -14,15 +14,15 @@ public class CmdLineController extends ActionController {
     private TLCState currentState;
 
 
-    public CmdLineController(ActionMapper mapper, TLCState initialState) {
-        super(mapper);
+    public CmdLineController(ActionMapper mapper, Action[] actions, TLCState initialState) {
+        super(mapper, actions);
         System.out.println("[Controller] Started the command line controller. Takes the next action from the user.");
         reader = new BufferedReader(new InputStreamReader(System.in));
         currentState = initialState;
     }
 
     @Override
-    public Action getNextAction(Action[] actions) {
+    public Action getNextAction() {
         System.out.println("[Controller] ---- Selection of the next action ----" );
         System.out.println("[Controller] Current state: " + currentState.toString());
         // System.out.println("[Controller] Actions: \n" + getActionsAsStr(actions)); //TODO Global setting for prints

@@ -154,11 +154,9 @@ public class ControlledWorker extends SimulationWorker {
 		System.out.println("[Worker] Initial state: " + curState);
 
 		ActionMapper mapper = new AbstractToTLAActionMapper(Arrays.asList(this.tool.getActions()));
-		ActionController controller = new RemoteController(mapper, curState); //new CmdLineController(mapper, initStates.elementAt(0));
+		ActionController controller = new RemoteController(mapper, this.tool.getActions(), curState); //new CmdLineController(mapper, initStates.elementAt(0));
 
-		final Action[] actions = this.tool.getActions();
 		boolean quit = false;
-
 		// Simulate a trace up to the maximum specified length.
 		for (int traceIdx = 0; traceIdx < maxTraceDepth && !quit; traceIdx++) {
 			// We don't want this thread to run for too long without checking for
@@ -172,7 +170,7 @@ public class ControlledWorker extends SimulationWorker {
 			Action a;
 			while(nextStates.empty()) {
 				try {
-					a = controller.getNextAction(actions);
+					a = controller.getNextAction();
 
 					if(a.equals(Action.UNKNOWN)) {
 						quit = true;

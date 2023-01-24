@@ -20,8 +20,8 @@ public class RemoteController extends ActionController {
     private final BlockingQueue<String> actionQueue;
     private final BlockingQueue<String> stateQueue;
 
-    public RemoteController(ActionMapper mapper, TLCState initialState) {
-        super(mapper);
+    public RemoteController(ActionMapper mapper, Action[] actions, TLCState initialState) {
+        super(mapper, actions);
         actionQueue = new ArrayBlockingQueue<String>(1);
         stateQueue = new ArrayBlockingQueue<String>(1);
         serverThread = new Thread(new MyServer(actionQueue, stateQueue, "q"));
@@ -31,7 +31,7 @@ public class RemoteController extends ActionController {
     }
 
     @Override
-    public Action getNextAction(Action[] validActions) {
+    public Action getNextAction() {
         Action nextAction = null;
 
         try {
