@@ -154,9 +154,16 @@ public class ControlledWorker extends SimulationWorker {
 		System.out.println("[Worker] Initial state: " + curState);
 
 		ActionMapper mapper = new AbstractToTLAActionMapper(Arrays.asList(this.tool.getActions()));
-		ActionController controller = new RemoteController(mapper, this.tool.getActions(), curState); //new CmdLineController(mapper, initStates.elementAt(0));
+		ActionController controller = new RemoteController(mapper, this.tool.getActions()); //new CmdLineController(mapper, initStates.elementAt(0));
 
+
+		// Actions to run asked by the controller
+		Queue<Action> actionsToRun = new ArrayDeque<>();
+		// States visited in correspondence, to send to the controller
+		List<TLCState> statesVisited = new ArrayList<>();
+		statesVisited.add(curState);
 		boolean quit = false;
+
 		// Simulate a trace up to the maximum specified length.
 		for (int traceIdx = 0; traceIdx < maxTraceDepth && !quit; traceIdx++) {
 			// We don't want this thread to run for too long without checking for
@@ -165,21 +172,25 @@ public class ControlledWorker extends SimulationWorker {
 			// checkForInterrupt();
 
 			// b) Get the current state's successor states.
-
 			nextStates.clear();
-			Action a;
 			while(nextStates.empty()) {
 				try {
-					a = controller.getNextAction();
 
-					if(a.equals(Action.UNKNOWN)) {
+					if(actionsToRun.isEmpty()) {
+						controller.setVisitedStates(statesVisited); // initially it adds the initial state
+						statesVisited.clear();
+						actionsToRun.addAll(controller.getNextActions());
+					}
+
+					Action nextAction = actionsToRun.remove();
+					if(nextAction.equals(Action.UNKNOWN)) { // next action is always non-null (or remove throws an exception)
 						quit = true;
 						break;
 					} else {
-						this.tool.getNextStates(this, curState, a); // fills in nextStates
+						this.tool.getNextStates(this, curState, nextAction); // fills in nextStates
 
 						if(nextStates.empty()) {
-							controller.setCurrentState(curState);
+							statesVisited.add(curState);
 						}
 					}
 				} catch (SimulationWorkerError swe) {
@@ -206,7 +217,7 @@ public class ControlledWorker extends SimulationWorker {
 			}
 			curState = s1;
 			setCurrentState(curState);
-			controller.setCurrentState(s1);
+			statesVisited.add(curState);
 		}
 
 		// Check for interruption once more before entering liveness checking.

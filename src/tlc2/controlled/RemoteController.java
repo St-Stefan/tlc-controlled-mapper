@@ -11,6 +11,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -20,35 +22,32 @@ public class RemoteController extends ActionController {
     private final BlockingQueue<String> actionQueue;
     private final BlockingQueue<String> stateQueue;
 
-    public RemoteController(ActionMapper mapper, Action[] actions, TLCState initialState) {
+    public RemoteController(ActionMapper mapper, Action[] actions) {
         super(mapper, actions);
         actionQueue = new ArrayBlockingQueue<String>(1);
         stateQueue = new ArrayBlockingQueue<String>(1);
         serverThread = new Thread(new MyServer(actionQueue, stateQueue, "q"));
         serverThread.start();
-
-        setCurrentState(initialState);
     }
 
     @Override
-    public Action getNextAction() {
-        Action nextAction = null;
+    public List<Action> getNextActions() {
+        List<Action> nextActions = new ArrayList<>();
 
         try {
             String inputStr = actionQueue.take();
             System.out.println("Received: " + inputStr);
-            nextAction = mapper.map(inputStr);
+            nextActions.addAll(mapper.mapListOfActions(inputStr));
         } catch (InterruptedException e) {
             e.printStackTrace();
             System.out.println("Unknown action");
-            nextAction = Action.UNKNOWN;
         }
 
-        return nextAction;
+        return nextActions;
     }
 
     @Override
-    public void setCurrentState(TLCState state) {
+    public void setVisitedStates(List<TLCState> state) {
         try {
             String message = "";
             if(state == null) {

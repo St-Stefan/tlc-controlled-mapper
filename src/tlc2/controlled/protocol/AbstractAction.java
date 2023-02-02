@@ -4,10 +4,13 @@ package tlc2.controlled.protocol;
 // TODO: Extend with fault actions: drop a message, isolate/crash a process
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import tlc2.tool.Action;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class AbstractAction {
@@ -33,7 +36,7 @@ public class AbstractAction {
         // mapped to: TM:0, RM1: 1, RM2: 2, RM3: 3
         for(Action a: actionList) {
             if(a.getName().equals(message) && a.getName().equals("RMPrepare")
-                    && Integer.parseInt(a.con.getValue().toString()) == senderId) {
+                    && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
                 return a;
             } else if(a.getName().equals(message) && a.getName().equals("TMRcvPrepared")
                     && Integer.parseInt(a.con.getValue().toString()) == senderId) {
@@ -79,6 +82,22 @@ public class AbstractAction {
         }
 
         return AbstractAction.UNKNOWN;
+    }
+
+    // return the action that matches the given coyote action
+    public static List<AbstractAction> listFromJson(String jsonStr) {
+
+        List<AbstractAction> actions = new ArrayList<>();
+        try{
+            Gson gson = new Gson();
+            AbstractAction[] array = gson.fromJson(jsonStr, AbstractAction[].class);
+            actions.addAll(Arrays.asList(array));
+
+        } catch (JsonSyntaxException e) {
+            System.out.println("[CoyoteActionMapper] Invalid action");
+        }
+
+        return actions;
     }
 
     // Will be implemented on the Coyote site:

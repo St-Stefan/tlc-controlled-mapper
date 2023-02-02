@@ -7,10 +7,12 @@ import tlc2.tool.TLCState;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CmdLineController extends ActionController {
 
-    private BufferedReader reader;
+    private final BufferedReader reader;
     private TLCState currentState;
 
 
@@ -18,26 +20,31 @@ public class CmdLineController extends ActionController {
         super(mapper, actions);
         System.out.println("[Controller] Started the command line controller. Takes the next action from the user.");
         reader = new BufferedReader(new InputStreamReader(System.in));
+        actionsToRun = new ArrayList<>();
+        statesVisited = new ArrayList<>();
+        statesVisited.add(initialState);
         currentState = initialState;
     }
 
     @Override
-    public Action getNextAction() {
+    public List<Action> getNextActions() {
         System.out.println("[Controller] ---- Selection of the next action ----" );
         System.out.println("[Controller] Current state: " + currentState.toString());
         // System.out.println("[Controller] Actions: \n" + getActionsAsStr(actions)); //TODO Global setting for prints
         System.out.println("[Controller] Enter the next action (-1 for quit): " );
 
-        return mapper.map(readInput());
+        return new ArrayList<>(mapper.mapListOfActions(readInput()));
     }
 
     @Override
-    public void setCurrentState(TLCState state) {
-        if(state == null) {
+    public void setVisitedStates(List<TLCState> states) {
+        if(states == null || states.isEmpty()) {
             System.out.println("No next state for that action. Choose again.\n\n");
         } else {
-            System.out.println("Setting the state to: " + state);
-            currentState = state;
+            TLCState s = states.get(states.size()-1);
+            System.out.println("Setting the state to: " + s);
+            currentState = s;
+            statesVisited.addAll(states);
         }
     }
 
@@ -47,7 +54,6 @@ public class CmdLineController extends ActionController {
                 return reader.readLine();
             } catch (IOException e) {
                 System.out.println(e.getMessage());
-                System.out.println("Enter a valid integer for the next action: ");
             }
         }
     }
