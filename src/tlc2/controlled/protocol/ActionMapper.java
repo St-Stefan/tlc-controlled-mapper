@@ -11,5 +11,4 @@ public interface ActionMapper {
 
     // Takes a list of actions in the json form and maps it to List<Action>
     List<Action> mapListOfActions(String actionsString);
-
 }

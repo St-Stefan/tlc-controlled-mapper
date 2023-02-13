@@ -34,7 +34,7 @@ import java.util.function.Supplier;
 
 import tlc2.TLCGlobals;
 import tlc2.controlled.protocol.ActionMapper;
-import tlc2.controlled.protocol.AbstractToTLAActionMapper;
+import tlc2.controlled.protocol.ActionMapperFactory;
 import tlc2.tool.*;
 import tlc2.tool.liveness.ILiveCheck;
 import tlc2.util.RandomGenerator;
@@ -153,9 +153,8 @@ public class ControlledWorker extends SimulationWorker {
 
 		System.out.println("[Worker] Initial state: " + curState);
 
-		ActionMapper mapper = new AbstractToTLAActionMapper(Arrays.asList(this.tool.getActions()));
+		ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(this.tool.getActions()), this.tool.getRootName());
 		ActionController controller = new RemoteController(mapper, this.tool.getActions()); //new CmdLineController(mapper, initStates.elementAt(0));
-
 
 		// Actions to run asked by the controller
 		Queue<Action> actionsToRun = new ArrayDeque<>();

@@ -4,7 +4,6 @@ package tlc2.controlled.protocol;
 // TODO: Extend with fault actions: drop a message, isolate/crash a process
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import tlc2.tool.Action;
