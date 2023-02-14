@@ -15,17 +15,17 @@ public class AbstractToTLAActionMapper implements ActionMapper {
     }
 
     // Takes an abstract action in the json form and maps it to Action of TLAChecker
-    public Action mapSingleAction(String actionString) {
+    public ActionWrapper mapSingleAction(String actionString) {
 
         AbstractAction abstractAction = AbstractAction.fromJson(actionString);
         return abstractAction.mapToAction(enabledActions);
     }
 
     // Takes a list of actions in the json form and maps it to List<Action>
-    public List<Action> mapListOfActions(String actionsString) {
+    public List<ActionWrapper> mapListOfActions(String actionsString) {
 
         List<AbstractAction> abstractActions = AbstractAction.listFromJson(actionsString);
-        List<Action> actions = new ArrayList<>();
+        List<ActionWrapper> actions = new ArrayList<>();
 
         for(AbstractAction a: abstractActions)
             actions.add(a.mapToAction(enabledActions));

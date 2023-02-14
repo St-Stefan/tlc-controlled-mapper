@@ -1,6 +1,7 @@
 package tlc2.controlled;
 
 import tlc2.controlled.protocol.ActionMapper;
+import tlc2.controlled.protocol.ActionWrapper;
 import tlc2.tool.Action;
 import tlc2.tool.TLCState;
 
@@ -19,6 +20,7 @@ import java.util.concurrent.BlockingQueue;
 public class RemoteController extends ActionController {
 
     private final Thread serverThread;
+    private final MyServer server;
     private final BlockingQueue<String> actionQueue;
     private final BlockingQueue<String> stateQueue;
 
@@ -26,13 +28,14 @@ public class RemoteController extends ActionController {
         super(mapper, actions);
         actionQueue = new ArrayBlockingQueue<String>(1);
         stateQueue = new ArrayBlockingQueue<String>(1);
-        serverThread = new Thread(new MyServer(actionQueue, stateQueue, "q"));
+        server = new MyServer(actionQueue, stateQueue, "q");
+        serverThread = new Thread(server);
         serverThread.start();
     }
 
     @Override
-    public List<Action> getNextActions() {
-        List<Action> nextActions = new ArrayList<>();
+    public List<ActionWrapper> getNextActions() {
+        List<ActionWrapper> nextActions = new ArrayList<>();
 
         try {
             String inputStr = actionQueue.take();
@@ -108,5 +111,7 @@ public class RemoteController extends ActionController {
                 System.out.println(e.getMessage());
             }
         }
+
+
     }
 }

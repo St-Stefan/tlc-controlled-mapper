@@ -1,6 +1,7 @@
 package tlc2.controlled;
 
 import tlc2.controlled.protocol.ActionMapper;
+import tlc2.controlled.protocol.ActionWrapper;
 import tlc2.tool.Action;
 import tlc2.tool.TLCState;
 
@@ -27,7 +28,7 @@ public class CmdLineController extends ActionController {
     }
 
     @Override
-    public List<Action> getNextActions() {
+    public List<ActionWrapper> getNextActions() {
         System.out.println("[Controller] ---- Selection of the next action ----" );
         System.out.println("[Controller] Current state: " + currentState.toString());
         // System.out.println("[Controller] Actions: \n" + getActionsAsStr(actions)); //TODO Global setting for prints

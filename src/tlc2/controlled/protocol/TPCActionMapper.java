@@ -2,8 +2,6 @@ package tlc2.controlled.protocol;
 
 import java.util.List;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 import tlc2.tool.Action;

@@ -35,6 +35,7 @@ import java.util.function.Supplier;
 import tlc2.TLCGlobals;
 import tlc2.controlled.protocol.ActionMapper;
 import tlc2.controlled.protocol.ActionMapperFactory;
+import tlc2.controlled.protocol.ActionWrapper;
 import tlc2.tool.*;
 import tlc2.tool.liveness.ILiveCheck;
 import tlc2.util.RandomGenerator;
@@ -110,7 +111,7 @@ public class ControlledWorker extends SimulationWorker {
 	 * This method returns a state that is randomly chosen from the set of states.
 	 * It returns null if the set of states is empty.
 	 */
-	private TLCState randomState(RandomGenerator rng, StateVec states) {
+	protected TLCState randomState(RandomGenerator rng, StateVec states) {
 		final int len = states.size();
 		if (len > 0) {
 			final int index = (int) Math.floor(rng.nextDouble() * len);
@@ -144,7 +145,7 @@ public class ControlledWorker extends SimulationWorker {
 	 * returns Optional.empty().
 	 *
 	 */
-	private Optional<SimulationWorker.SimulationWorkerError> simulateRandomTrace() throws Exception {
+	protected Optional<SimulationWorker.SimulationWorkerError> simulateRandomTrace() throws Exception {
 
 		// a) Randomly select a state from the set of init states.
 		assert(initStates.size() == 1);
@@ -157,7 +158,7 @@ public class ControlledWorker extends SimulationWorker {
 		ActionController controller = new RemoteController(mapper, this.tool.getActions()); //new CmdLineController(mapper, initStates.elementAt(0));
 
 		// Actions to run asked by the controller
-		Queue<Action> actionsToRun = new ArrayDeque<>();
+		Queue<ActionWrapper> actionsToRun = new ArrayDeque<>();
 		// States visited in correspondence, to send to the controller
 		List<TLCState> statesVisited = new ArrayList<>();
 		statesVisited.add(curState);
@@ -181,7 +182,12 @@ public class ControlledWorker extends SimulationWorker {
 						actionsToRun.addAll(controller.getNextActions());
 					}
 
-					Action nextAction = actionsToRun.remove();
+					ActionWrapper nextActionWrapper = actionsToRun.remove();
+					if(nextActionWrapper.isQuit() || nextActionWrapper.isReset()) {
+						quit = true;
+						break;
+					}
+					Action nextAction = nextActionWrapper.action;
 					if(nextAction.equals(Action.UNKNOWN)) { // next action is always non-null (or remove throws an exception)
 						quit = true;
 						break;

@@ -27,8 +27,8 @@ public class AbstractAction {
 
     // Model specific!
     // Returns the TLA action from the given list of actions
-    public Action mapToAction(final List<Action> actionList) {
-        if(this.equals(UNKNOWN)) return Action.UNKNOWN;
+    public ActionWrapper mapToAction(final List<Action> actionList) {
+        if(this.equals(UNKNOWN)) return ActionWrapper.action(Action.UNKNOWN);
 
         // For the Actions in TwoPhaseCommit
         // node ids: RMs: r1, r2, r3
@@ -36,24 +36,24 @@ public class AbstractAction {
         for(Action a: actionList) {
             if(a.getName().equals(message) && a.getName().equals("RMPrepare")
                     && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("TMRcvPrepared")
                     && Integer.parseInt(a.con.getValue().toString()) == senderId) {
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("RMChooseToAbort")
                     && Integer.parseInt(a.con.getValue().toString()) == senderId) {
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("TMRcvAborted")
                     && Integer.parseInt(a.con.getValue().toString()) == senderId) {
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("RMRcvAbortMsg")
                     && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("TMCommit")) { // sends all at once // send first to a0, a1, etc does not matter!
-                return a;
+                return ActionWrapper.action(a);
             } else if(a.getName().equals(message) && a.getName().equals("RMRcvCommitMsg")
                     && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
-                return a;
+                return ActionWrapper.action(a);
             }
         }
 

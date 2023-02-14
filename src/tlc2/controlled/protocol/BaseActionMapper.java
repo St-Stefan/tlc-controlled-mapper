@@ -20,15 +20,23 @@ public abstract class BaseActionMapper implements ActionMapper {
 
     protected abstract Action mapAction(AbstractAction a);
 
-    public Action mapSingleAction(String actionString) {
-        return mapAction(fromJson(actionString));
+    public ActionWrapper mapSingleAction(String actionString) {
+        AbstractAction abstractAction = fromJson(actionString);
+        if (abstractAction.isReset()) {
+            return ActionWrapper.reset();
+        }
+        return ActionWrapper.action(mapAction(abstractAction));
     }
 
-    public List<Action> mapListOfActions(String actionString) {
-        List<Action> outList = new ArrayList<>();
+    public List<ActionWrapper> mapListOfActions(String actionString) {
+        List<ActionWrapper> outList = new ArrayList<>();
         List<AbstractAction> abstractActions = listFromJson(actionString);
         for(AbstractAction a:abstractActions) {
-            outList.add(mapAction(a));
+            if(a.isReset()) {
+                outList.add(ActionWrapper.reset());
+            } else {
+            outList.add(ActionWrapper.action(mapAction(a)));
+            }
         }
         return outList;
     }
@@ -41,7 +49,7 @@ public abstract class BaseActionMapper implements ActionMapper {
             int receiverId = root.get("receiverId").getAsInt();
             String message = root.get("message").getAsString();
 
-            return new AbstractAction(senderId, receiverId, message);
+            return new AbstractAction(senderId, receiverId, message, false);
 
         } catch (JsonSyntaxException e) {
             System.out.println("[CoyoteActionMapper] Invalid action");
@@ -68,11 +76,17 @@ public abstract class BaseActionMapper implements ActionMapper {
         public final int senderId;
         public final int receiverId;
         public final String message;
+        public final boolean reset;
 
-        public AbstractAction(int senderId, int receiverId, String message) {
+        public AbstractAction(int senderId, int receiverId, String message, boolean reset) {
             this.senderId = senderId;
             this.receiverId = receiverId;
             this.message = message;
+            this.reset = reset;
         }
+
+        public boolean isReset() {
+            return this.reset;
+        } 
     }
 }

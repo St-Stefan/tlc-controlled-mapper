@@ -1,6 +1,7 @@
 package tlc2.controlled;
 
 import tlc2.controlled.protocol.ActionMapper;
+import tlc2.controlled.protocol.ActionWrapper;
 import tlc2.tool.Action;
 import tlc2.tool.TLCState;
 
@@ -23,7 +24,7 @@ public abstract class ActionController {
     }
 
     // returns the next action in jason format
-    public abstract List<Action> getNextActions();
+    public abstract List<ActionWrapper> getNextActions();
 
     // sets the current state of the execution
     public abstract void setVisitedStates(List<TLCState> state);
