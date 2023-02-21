@@ -409,6 +409,62 @@
 				<!-- won't work with 'sandbox' as it writes files -->
 			</manifest>
 		</jar>
+		<jar destfile="${dist.file}_server" level="9">
+			<fileset dir="${class.dir}" includes="**/*" excludes="
+					**/*.jpg,
+					README.txt,
+				    heapstats.jfc,
+				    jpf.properties,
+					tlc2/tool/fp/*.tla,
+					tlc2/value/*.tla,
+					pcal/*.tla,
+					META-INF/maven/,
+					src/tla2sany/parser/ParseException.09-09-07,
+					src/tla2sany/parser/TLAplusParser.09-07-02,
+					src/tla2sany/parser/TLAplusParser.11-02-10,
+					src/tla2sany/parser/TLAplusParserConstants.09-07-02,
+					src/tla2sany/parser/TLAplusParserConstants.09-09-07,
+					src/tla2sany/parser/TLAplusParserConstants.11-02-10,
+					src/tla2sany/parser/TLAplusParserTokenManager.09-07-02,
+					src/tla2sany/parser/TLAplusParserTokenManager.09-09-07,
+					src/tla2sany/parser/TLAplusParserTokenManager.11-02-10,
+					src/tla2sany/parser/Token.09-09-07,
+					src/tla2sany/parser/TokenMgrError.09-09-07"/>
+			<fileset dir="${doc.dir}" includes="License.txt"/>
+			<fileset dir="${test.class.dir}">
+				<include name="**/tlc2/tool/CommonTestCase*.class" />
+				<include name="**/tlc2/tool/liveness/ModelCheckerTestCase*.class" />
+				<include name="**/tlc2/tool/liveness/tlc2.tool.liveness.TTraceModelCheckerTestCase*.class" />
+				<include name="**/tlc2/TestMPRecorder*.class" />
+				<include name="**/util/IsolatedTestCaseRunner*.class" />
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Build-Tag" value="${env.BUILD_TAG}" />
+				<attribute name="Build-Rev" value="${Build-Rev}" />
+				<attribute name="Build-TimeStamp" value="${ISO8601}"/>
+				<attribute name="Implementation-Title" value="TLA+ Tools" />
+				<attribute name="Implementation-Version" value="${version} ${TODAY}" />
+				<attribute name="Implementation-Vendor" value="Microsoft Corp." />
+				<!-- The jar files contains many main classes (SANY, TEX, pcal, ...) --> 
+                <!-- but lets consider TLC the one users primarily use. --> 
+				<attribute name="Main-class" value="tlc2.TLCServer" />
+				<attribute name="Class-Path" value="CommunityModules-deps.jar CommunityModules.jar" />
+				<!-- Git revision -->
+				<attribute name="X-Git-Branch" value="${git.branch}" />
+				<attribute name="X-Git-Tag" value="${git.tag}" />
+				<attribute name="X-Git-Revision" value="${git.revision}" />
+				<attribute name="X-Git-ShortRevision" value="${git.shortRevision}" />
+				<attribute name="X-Git-BuildNumber" value="${git.branch}_${git.tag}_${git.shortRevision}" />
+				<attribute name="X-Git-Commits-Count" value="${git.commitsCount}" />
+				<!-- App-Name and Permissions is required by Java Webstart used by distributed TLC -->
+				<!-- Depending on security level, the user will see a warning otherwise. -->
+				<!-- http://docs.oracle.com/javase/7/docs/technotes/guides/jweb/security/manifest.html -->
+				<attribute name="Application-Name" value="TLC" />
+				<attribute name="permissions" value="all-permissions" />
+				<!-- won't work with 'sandbox' as it writes files -->
+			</manifest>
+		</jar>
 	</target>
 
 	<!-- Compiles the TLA+ tools *test* code -->

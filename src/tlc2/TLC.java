@@ -97,7 +97,7 @@ public class TLC {
      * Whether to run in model checking or simulation mode.
      * Defaults to model checking.
      */
-    private RunMode runMode;
+    protected RunMode runMode;
     /**
      * Whether to clean up the states directory.
      */
@@ -105,7 +105,7 @@ public class TLC {
     /**
      * Whether to check for deadlock.
      */
-    private boolean deadlock;
+    protected boolean deadlock;
 
     /**
      * Whether a seed for the random number generator was provided.
@@ -128,9 +128,9 @@ public class TLC {
 	/**
 	 * Name of main TLA+ specification file.
 	 */
-    private String mainFile;
-    private String configFile;
-	private String metadir;
+    protected String mainFile;
+    protected String configFile;
+	protected String metadir;
     /**
 	 * If instantiated with a non-Noop* instance, the trace will be written to the
 	 * user provided file (-dump parameter).
@@ -156,18 +156,18 @@ public class TLC {
     /**
      * The number of traces/behaviors to generate in simulation mode
      */
-    private static long traceNum = Long.MAX_VALUE;
+    protected static long traceNum = Long.MAX_VALUE;
 
     /**
      * Name of the file to which to write state traces.
      */
-    private String traceFile = null;
-    private String traceActions = null;
+    protected String traceFile = null;
+    protected String traceActions = null;
     /**
      * Maximum state trace depth. Set to 100 by default.
      */
-    private int traceDepth;
-    private FilenameToStream resolver;
+    protected int traceDepth;
+    protected FilenameToStream resolver;
 
     /**
 	 * Whether welcome message has already been printed.
@@ -179,7 +179,7 @@ public class TLC {
      */
     private FPSetConfiguration fpSetConfiguration;
     
-    private final Map<String, Object> params;
+    protected final Map<String, Object> params;
     
     private int debugPort = -1;
     private boolean suspend = true;
@@ -1665,6 +1665,10 @@ public class TLC {
 
     public String getMainFile() {
         return mainFile;
+    }
+
+    public String getConfigFile() {
+        return configFile;
     }
     
     public long getStartTime() {

@@ -69,7 +69,7 @@ public class RemoteController extends ActionController {
         return serverThread.isAlive();
     }
 
-    private static class MyServer implements Runnable {
+    private class MyServer implements Runnable {
 
         private final BlockingQueue<String> actionQueue;
         private final BlockingQueue<String> stateQueue;

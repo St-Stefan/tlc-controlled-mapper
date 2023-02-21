@@ -7,7 +7,7 @@ target/*
 test-class/tlc2/tool/DumpAsDotTest.dot
 test-class/tlc2/tool/Github407.dump
 
-dist/tla2tools.jar
+dist/*
 TLA+ Tools/*
 
 

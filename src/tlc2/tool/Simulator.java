@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import tla2sany.st.Location;
 import tlc2.TLCGlobals;
+import tlc2.controlled.ControlledWorker;
 import tlc2.controlled.ResettableControlledWorker;
 import tlc2.module.TLCGetSet;
 import tlc2.output.EC;
@@ -127,7 +128,7 @@ public class Simulator {
 						this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
 			} else {
 				if(TLCGlobals.controlled) {
-					this.workers.add(new ResettableControlledWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
+					this.workers.add(new ControlledWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
 							this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
 							this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
 				} else {

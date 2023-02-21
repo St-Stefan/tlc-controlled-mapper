@@ -44,13 +44,15 @@ public class ResettableControlledWorker extends ControlledWorker{
 		Queue<ActionWrapper> actionsToRun = new ArrayDeque<>();
 		// States visited in correspondence, to send to the controller
 		List<TLCState> statesVisited = new ArrayList<>();
-		statesVisited.add(curState);
 		boolean quit = false;
 
 		TraceGenLoop:
 		while(true) {
+			statesVisited.clear();
+			
 			assert(initStates.size() == 1);
 			curState = randomState(this.localRng, initStates);
+			statesVisited.add(curState);
 			setCurrentState(curState);
 
 			System.out.println("[Worker] Initial state: " + curState);
