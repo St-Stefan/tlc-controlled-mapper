@@ -52,7 +52,7 @@ public abstract class BaseActionMapper implements ActionMapper {
             return new AbstractAction(senderId, receiverId, message, false);
 
         } catch (JsonSyntaxException e) {
-            System.out.println("[CoyoteActionMapper] Invalid action");
+            System.out.println("[AbstractAction] Invalid action. Error: "+e.getMessage());
         }
         return null;
     }
@@ -65,7 +65,7 @@ public abstract class BaseActionMapper implements ActionMapper {
             actions.addAll(Arrays.asList(array));
 
         } catch (JsonSyntaxException e) {
-            System.out.println("[CoyoteActionMapper] Invalid action");
+            System.out.println("[AbstractAction] Invalid action. Error: "+e.getMessage());
         }
 
         return actions;

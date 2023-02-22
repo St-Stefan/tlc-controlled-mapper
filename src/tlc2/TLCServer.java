@@ -28,6 +28,7 @@ import tlc2.tool.impl.FastTool;
 import tlc2.tool.impl.Tool;
 import tlc2.value.impl.CounterExample;
 import tlc2.util.RandomGenerator;
+import util.FileUtil;
 import util.SimpleFilenameToStream;
 import util.Assert.TLCRuntimeException;
 
@@ -63,6 +64,7 @@ public class TLCServer extends TLC {
                     }
                 }
             }
+            index++;
         }
         this.actionQueue = new ArrayBlockingQueue<>(1);
         this.stateQueue = new ArrayBlockingQueue<>(1);
@@ -107,16 +109,15 @@ public class TLCServer extends TLC {
     }
 
     private boolean simulate(ITool tool) {
-        boolean reset = false;
         ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(tool.getActions()), tool.getRootName());
-
 		Queue<ActionWrapper> actionsToRun = new ArrayDeque<>();
-		// States visited in correspondence, to send to the controller
 		List<TLCState> statesVisited = new ArrayList<>();
+
         StateVec nextStates = new StateVec(1);
         TLCState curState = randomState(initStates);
+
         statesVisited.add(curState);
-        while(!reset) {
+        while(true) {
             try {
                 nextStates.clear();
                 while(nextStates.empty()) {
@@ -130,7 +131,7 @@ public class TLCServer extends TLC {
                     ActionWrapper nextAction = actionsToRun.remove();
                     if (nextAction.isReset()) {
                         return false;
-                    } else if (nextAction.isReset() || nextAction.action.equals(Action.UNKNOWN)) {
+                    } else if (nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
                         return true;
                     } else {
                         nextStates.addElements(tool.getNextStates(nextAction.action, curState));
@@ -149,7 +150,6 @@ public class TLCServer extends TLC {
                 return false;
             }
         }
-        return false;
     }
 
     private TLCState randomState(StateVec states) {
@@ -224,8 +224,12 @@ public class TLCServer extends TLC {
         if (!tlc.handleParameters(args)) {
             System.exit(1);
         }
-        tlc.setResolver(new SimpleFilenameToStream());
-
+        final String dir = FileUtil.parseDirname(tlc.getMainFile());
+        if (!dir.isEmpty()) {
+            tlc.setResolver(new SimpleFilenameToStream(dir));
+        } else {
+            tlc.setResolver(new SimpleFilenameToStream());
+        }
         tlc.serverThread.start();
 
         int errCode = tlc.process();
@@ -252,7 +256,7 @@ public class TLCServer extends TLC {
 
         @Override
         public void run() {
-            System.out.println("Server starts listening");
+            System.out.println("Server starts listening on port: "+Integer.toString(port));
             try {
                 ServerSocket ss =new ServerSocket(port);
                 Socket socket = ss.accept();

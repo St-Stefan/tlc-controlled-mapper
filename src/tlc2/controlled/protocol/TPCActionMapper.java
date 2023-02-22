@@ -47,7 +47,8 @@ public class TPCActionMapper extends BaseActionMapper {
 
 
         } catch (JsonSyntaxException e) {
-            System.out.println("[CoyoteActionMapper] Invalid action");
+            System.out.println("[TPCActionMapper] Invalid action");
+            System.out.println("Error: "+e.getMessage());
         }
 
         return null;

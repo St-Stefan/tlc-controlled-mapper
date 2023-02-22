@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import tla2sany.st.Location;
 import tlc2.TLCGlobals;
 import tlc2.controlled.ControlledWorker;
-import tlc2.controlled.ResettableControlledWorker;
 import tlc2.module.TLCGetSet;
 import tlc2.output.EC;
 import tlc2.output.MP;

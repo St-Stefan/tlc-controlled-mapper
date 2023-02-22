@@ -409,7 +409,7 @@
 				<!-- won't work with 'sandbox' as it writes files -->
 			</manifest>
 		</jar>
-		<jar destfile="${dist.file}_server" level="9">
+		<jar destfile="${dist.dir}/tla2tools_server.jar" level="9">
 			<fileset dir="${class.dir}" includes="**/*" excludes="
 					**/*.jpg,
 					README.txt,
