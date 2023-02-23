@@ -55,3 +55,16 @@ You can check `/src/tlc2/controlled` for more details.
  java -jar dist/tla2tools.jar -controlled num=1,file=out.txt /path-to-TLA-file/MC.tla -config /path-to-config-file/MC.cfg
  ```
 
+### Run TLC with server:
+
+You can run TLC with a server (listening on localhost) that accepts actions on an TPC connection.
+
+``` shell
+  java -jar dist/tla2tools_server.jar  /path-to-TLA-file/MC.tla -config /path-to-config-file/MC.cfg
+```
+
+Additionally you can specify the port to listen to (default 2023) with the `-serverport` configuration.
+
+``` shell
+  java -jar dist/tla2tools_server.jar -serverport 2023 /path-to-TLA-file/MC.tla -config /path-to-config-file/MC.cfg
+```

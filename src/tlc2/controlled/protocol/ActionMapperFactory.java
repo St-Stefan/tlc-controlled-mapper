@@ -10,7 +10,7 @@ public class ActionMapperFactory {
             case "MC":
                 return new TPCActionMapper(enabledActions);
             default:
-                return new AbstractToTLAActionMapper(enabledActions);
+                return new DefaultActionMapper(enabledActions);
         }
     }
 }
