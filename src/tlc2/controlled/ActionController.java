@@ -10,7 +10,7 @@ import java.util.List;
 public abstract class ActionController {
 
     protected ActionMapper mapper;
-    protected Action[] enabdledActions;
+    protected Action[] enabledActions;
 
     // The list of all actions asked by the controller, collected during the interaction
     protected List<Action> actionsToRun;
@@ -20,7 +20,7 @@ public abstract class ActionController {
 
     public ActionController(ActionMapper mapper, Action[] actions) {
         this.mapper = mapper;
-        this.enabdledActions = actions;
+        this.enabledActions = actions;
     }
 
     // returns the next action in jason format

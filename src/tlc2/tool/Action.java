@@ -4,6 +4,8 @@
 package tlc2.tool;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import tla2sany.semantic.OpDefNode;
 import tla2sany.semantic.SemanticNode;
@@ -146,5 +148,15 @@ public final class Action implements ToolGlobals, Serializable {
 
 	public boolean isInternal() {
 		return isInternal;
+	}
+
+	public List<Object> getParams() {
+		Context c = this.con.next();
+		List<Object> params = new ArrayList<>();
+		for(int j = 2; j < this.con.depth(); j++) {
+			params.add(c.getValue());
+			c = c.next();
+		}
+		return params;
 	}
 }

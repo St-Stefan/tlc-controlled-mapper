@@ -4,6 +4,7 @@ import tlc2.controlled.protocol.ActionMapper;
 import tlc2.controlled.protocol.ActionWrapper;
 import tlc2.tool.Action;
 import tlc2.tool.TLCState;
+import tlc2.util.Context;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,12 +26,15 @@ public class CmdLineController extends ActionController {
         statesVisited = new ArrayList<>();
         statesVisited.add(initialState);
         currentState = initialState;
+
+        System.out.println("List of actions: ");
+        System.out.println(getActionsAsStr(actions));
     }
 
     @Override
     public List<ActionWrapper> getNextActions() {
         System.out.println("[Controller] ---- Selection of the next action ----" );
-        System.out.println("[Controller] Current state: " + currentState.toString());
+        // System.out.println("[Controller] Current state: " + currentState.toString());
         // System.out.println("[Controller] Actions: \n" + getActionsAsStr(actions)); //TODO Global setting for prints
         System.out.println("[Controller] Enter the next action (-1 for quit): " );
 
@@ -63,16 +67,22 @@ public class CmdLineController extends ActionController {
         StringBuilder s = new StringBuilder();
         for(int i = 0; i < actions.length; i++) {
             Action a = actions[i];
-            s.append("   Action #").append(i).append(": ").append(a.getName()).append("\n");
+            s.append("   Action #").append(i).append(": ").append(a.getName());
             // s.append(new AbstractAction(a.));
-            /*
-            System.out.println(a.con.depth());
+
+            // Prints parameters:
+            Context c = a.con.next();
             s.append("(");
-            if(a.con.getValue() != null)
-                s.append(a.con.getValue());
+            for(int j = 2; j < a.con.depth(); j++) {
+                s.append(c.getValue());
+                s.append(",");
+                c = c.next();
+            }
             s.append(")");
-            s.append(" id: ").append(a.pred.myUID).append("\n");
-            */
+
+            // s.append(" id: ").append(a.pred.myUID);
+
+            s.append("\n");
         }
         return s.toString();
     }

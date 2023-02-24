@@ -1,12 +1,11 @@
 package tlc2.controlled.protocol;
 
-import java.util.List;
-
 import com.google.gson.JsonSyntaxException;
-
 import tlc2.tool.Action;
 
-// TwoPhaseCommit action mapper
+import java.util.List;
+
+// TwoPhaseCommit (TwoPhaseCommit with parametric number of transaction requests) action mapper
 public class TPCActionMapper extends BaseActionMapper {
 
     public TPCActionMapper(List<Action> enabledActions) {
@@ -15,34 +14,41 @@ public class TPCActionMapper extends BaseActionMapper {
 
     public Action mapAction(AbstractAction abstractAction) {
         try{
-            int senderId = abstractAction.senderId;
-            int receiverId = abstractAction.receiverId;
             String message = abstractAction.message;
 
             for(Action a: this.enabledActions) {
-                if(a.getName().equals(message) && a.getName().equals("RMPrepare")
-                        && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
+                if(a.getName().equals(message) && a.getName().equals("NextRequest")) {
+                    return a;
+                } else if(a.getName().equals(message) && a.getName().equals("TMSendPrepareReq") // sends all at once // send first to a0, a1, etc does not matter!
+                        && abstractAction.hasParams(a.getParams())) {
+                    return a;
+                } else if(a.getName().equals(message) && a.getName().equals("RMRcvPrepareReq")
+                        && abstractAction.hasParams(a.getParams())) {
+                    return a;
+                } else if(a.getName().equals(message) && a.getName().equals("RMSendPrepared")
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
                 } else if(a.getName().equals(message) && a.getName().equals("TMRcvPrepared")
-                        && Integer.parseInt(a.con.getValue().toString()) == senderId) {
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
-                } else if(a.getName().equals(message) && a.getName().equals("RMChooseToAbort")
-                        && Integer.parseInt(a.con.getValue().toString()) == senderId) {
+                } else if(a.getName().equals(message) && a.getName().equals("RMSendAborted")
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
-                } else if(a.getName().equals(message) && a.getName().equals("TMRcvAborted")
-                        && Integer.parseInt(a.con.getValue().toString()) == senderId) {
+                } else if(a.getName().equals(message) && a.getName().equals("TMRcvAborted") // sends GlobalAbort upon receipt of Aborted
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
-                } else if(a.getName().equals(message) && a.getName().equals("RMRcvAbortMsg")
-                        && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
+                } else if(a.getName().equals(message) && a.getName().equals("RMRcvGlobalAbort")
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
-                } else if(a.getName().equals(message) && a.getName().equals("TMCommit")) { // sends all at once // send first to a0, a1, etc does not matter!
+                } else if(a.getName().equals(message) && a.getName().equals("TMSendGlobalCommit")
+                        && abstractAction.hasParams(a.getParams())) { // sends all at once // send first to a0, a1, etc does not matter
                     return a;
-                } else if(a.getName().equals(message) && a.getName().equals("RMRcvCommitMsg")
-                        && Integer.parseInt(a.con.getValue().toString()) == receiverId) {
+                } else if(a.getName().equals(message) && a.getName().equals("RMRcvGlobalCommit")
+                        && abstractAction.hasParams(a.getParams())) {
                     return a;
                 }
             }
-    
+
             return null;
 
 
@@ -53,4 +59,5 @@ public class TPCActionMapper extends BaseActionMapper {
 
         return null;
     }
+
 }

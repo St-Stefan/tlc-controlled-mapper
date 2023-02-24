@@ -155,7 +155,7 @@ public class ControlledWorker extends SimulationWorker {
 		System.out.println("[Worker] Initial state: " + curState);
 
 		ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(this.tool.getActions()), this.tool.getRootName());
-		ActionController controller = new RemoteController(mapper, this.tool.getActions()); //new CmdLineController(mapper, initStates.elementAt(0));
+		ActionController controller = new RemoteController(mapper, this.tool.getActions()); // new CmdLineController(mapper, this.tool.getActions(), curState);
 
 		// Actions to run asked by the controller
 		Queue<ActionWrapper> actionsToRun = new ArrayDeque<>();
