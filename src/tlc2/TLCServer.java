@@ -66,8 +66,8 @@ public class TLCServer extends TLC {
             }
             index++;
         }
-        this.actionQueue = new ArrayBlockingQueue<>(1);
-        this.stateQueue = new ArrayBlockingQueue<>(1);
+        this.actionQueue = new ArrayBlockingQueue<String>(1);
+        this.stateQueue = new ArrayBlockingQueue<String>(1);
         this.server = new Server(this.actionQueue, this.stateQueue, "q", serverPort);
         this.serverThread = new Thread(server);
         return true;
@@ -110,8 +110,8 @@ public class TLCServer extends TLC {
 
     private boolean simulate(ITool tool) {
         ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(tool.getActions()), tool.getRootName());
-		Queue<ActionWrapper> actionsToRun = new ArrayDeque<>();
-		List<TLCState> statesVisited = new ArrayList<>();
+		Queue<ActionWrapper> actionsToRun = new ArrayDeque<ActionWrapper>();
+		List<TLCState> statesVisited = new ArrayList<TLCState>();
 
         StateVec nextStates = new StateVec(1);
         TLCState curState = randomState(initStates);
@@ -122,7 +122,7 @@ public class TLCServer extends TLC {
                 nextStates.clear();
                 while(nextStates.empty()) {
                     if (actionsToRun.isEmpty()) {
-                        stateQueue.add(statesVisited.toString()+"\n");
+                        stateQueue.add(statesVisited+"\n");
                         statesVisited.clear();
 
                         String input = actionQueue.take();

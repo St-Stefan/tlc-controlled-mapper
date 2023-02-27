@@ -3,6 +3,7 @@ package tlc2.controlled.protocol;
 import java.util.*;
 
 import com.google.gson.*;
+import com.google.gson.annotations.*;
 
 import tlc2.tool.Action;
 
@@ -31,7 +32,10 @@ public abstract class BaseActionMapper implements ActionMapper {
             if(a.isReset()) {
                 outList.add(ActionWrapper.reset());
             } else {
-            outList.add(ActionWrapper.action(mapAction(a)));
+                Action mappedAction = mapAction(a);
+                if (mappedAction != null) {
+                    outList.add(ActionWrapper.action(mappedAction));
+                }
             }
         }
         return outList;
@@ -40,19 +44,8 @@ public abstract class BaseActionMapper implements ActionMapper {
     protected AbstractAction fromJson(String jsonString) {
         try{
             Gson gson = new Gson();
-            JsonObject root = gson.fromJson(jsonString, JsonObject.class);
-            int senderId = root.get("senderId").getAsInt();
-            int receiverId = root.get("receiverId").getAsInt();
-            String message = root.get("message").getAsString();
-            JsonArray jsonArray = root.get("params").getAsJsonArray();
-
-            List<String> params = new ArrayList<>();
-            for(JsonElement e: jsonArray) {
-                params.add(e.getAsString());
-            }
-
-            return new AbstractAction(senderId, receiverId, message, params, false);
-
+            AbstractAction action = gson.fromJson(jsonString, AbstractAction.class);
+            return action;
         } catch (JsonSyntaxException e) {
             System.out.println("[AbstractAction] Invalid action. Error: "+e.getMessage());
         }
@@ -60,7 +53,7 @@ public abstract class BaseActionMapper implements ActionMapper {
     }
 
     protected List<AbstractAction> listFromJson(String listJsonString) {
-        List<AbstractAction> actions = new ArrayList<>();
+        List<AbstractAction> actions = new ArrayList<AbstractAction>();
         try{
             Gson gson = new Gson();
             AbstractAction[] array = gson.fromJson(listJsonString, AbstractAction[].class);
@@ -74,35 +67,25 @@ public abstract class BaseActionMapper implements ActionMapper {
 
     // TODO: Each model can have its own AbstractAction class (e.g., Raft has objects as message parameters instead of strings)
     protected class AbstractAction {
-        public final int senderId;
-        public final int receiverId;
-        public final String message;
-        public final List<String> params;
+
+        @SerializedName(value = "name", alternate = {"Name"})
+        public final String name;
+
+        @SerializedName(value = "params", alternate = {"Params"})
+        public final HashMap<String, Object> params;
+
+
+        @SerializedName(value = "reset", alternate = {"Reset"})
         public final boolean reset;
 
-        public AbstractAction(int senderId, int receiverId, String message, List<String> params, boolean reset) {
-            this.senderId = senderId;
-            this.receiverId = receiverId;
-            this.message = message;
-            this.params = (params != null) ? new ArrayList<>(params) : new ArrayList<>();
+        public AbstractAction(String name, HashMap<String, Object> params, boolean reset) {
+            this.name = name;
+            this.params = params;
             this.reset = reset;
         }
 
         public boolean isReset() {
             return this.reset;
-        }
-
-        // TODO: Param comparison depends on the model
-        //  This method compares the parameters of type String (TwoPhaseCommit has messages of type string or int)
-        public boolean hasParams(List<Object> params) {
-            if(this.params.size() != params.size()) return false;
-
-            for(int i = 0; i < this.params.size(); i++) {
-                if(!this.params.get(i).equals(params.get(i).toString())) {
-                    return false;
-                }
-            }
-            return true;
         }
     }
 }
