@@ -80,7 +80,7 @@ public class TLCServer extends TLC {
             try {
                 ITool tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
                 computeInitStates(tool);
-                quit = simulate(tool);
+                quit = simulate(tool);    
             } catch (Throwable e) {
                 if (e instanceof StackOverflowError)
                 {
@@ -130,8 +130,12 @@ public class TLCServer extends TLC {
                     }
                     ActionWrapper nextAction = actionsToRun.remove();
                     if (nextAction.isReset()) {
+                        stateQueue.add(statesVisited+"\n");
+                        statesVisited.clear();
                         return false;
                     } else if (nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
+                        stateQueue.add(statesVisited+"\n");
+                        statesVisited.clear();
                         return true;
                     } else {
                         nextStates.addElements(tool.getNextStates(nextAction.action, curState));

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 // TwoPhaseCommit (TwoPhaseCommit with parametric number of transaction requests) action mapper
 public class TPCActionMapper extends BaseActionMapper {
@@ -30,6 +31,23 @@ public class TPCActionMapper extends BaseActionMapper {
         }
     }
 
+    private Optional<Integer> getRequestId(AbstractAction abstractAction) {
+        if(!abstractAction.params.containsKey("request_id")) {
+            return Optional.empty();
+        }
+        Object requestIDObject = abstractAction.params.get("request_id");
+        if (requestIDObject instanceof String) {
+            Integer requestId = Integer.parseInt((String) abstractAction.params.get("request_id"));
+            return Optional.of(requestId);
+        }
+        try {
+            Double requestID = (Double) requestIDObject;
+            return Optional.of(requestID.intValue());
+        } catch(Exception e) {
+            return Optional.empty();
+        }
+    }
+
     public Action mapAction(AbstractAction abstractAction) {
         try{
             String message = abstractAction.name;
@@ -39,7 +57,11 @@ public class TPCActionMapper extends BaseActionMapper {
                     String event = (String) abstractAction.params.get("event");
                     switch (event) {
                         case "TwoPhaseCommit.RequestEvent":
-                            int request = Integer.parseInt((String) abstractAction.params.get("request_id"));
+                            Optional<Integer> requestId = getRequestId(abstractAction);
+                            if (requestId.isEmpty()) {
+                                return null;
+                            }
+                            int request = requestId.get();
                             if (!this.enabledActionMap.containsKey("TMSendPrepareReq")) {
                                 return null;
                             }
@@ -56,7 +78,12 @@ public class TPCActionMapper extends BaseActionMapper {
                             // Map to "TMSendPrepareReq" of the corresponding request
                         case "TwoPhaseCommit.PreparedEvent":
                             int sender = Integer.parseInt((String) abstractAction.params.get("sender_id"));
-                            request = Integer.parseInt((String) abstractAction.params.get("request_id"));
+
+                            requestId = getRequestId(abstractAction);
+                            if (requestId.isEmpty()) {
+                                return null;
+                            }
+                            request = requestId.get();
                             if (!this.enabledActionMap.containsKey("RMSendPrepared")) {
                                 return null;
                             }
@@ -74,7 +101,11 @@ public class TPCActionMapper extends BaseActionMapper {
                             // Map to "RMSendPrepared"
                         case "TwoPhaseCommit.AbortEvent":
                             sender = Integer.parseInt((String) abstractAction.params.get("sender_id"));
-                            request = Integer.parseInt((String) abstractAction.params.get("request_id"));
+                            requestId = getRequestId(abstractAction);
+                            if (requestId.isEmpty()) {
+                                return null;
+                            }
+                            request = requestId.get();
                             if (!this.enabledActionMap.containsKey("RMSendAborted")) {
                                 return null;
                             }
@@ -91,7 +122,11 @@ public class TPCActionMapper extends BaseActionMapper {
                             break;
                             // Map to "RMSendAborted"
                         case "TwoPhaseCommit.GlobalCommitEvent":
-                            request = Integer.parseInt((String) abstractAction.params.get("request_id"));
+                            requestId = getRequestId(abstractAction);
+                            if (requestId.isEmpty()) {
+                                return null;
+                            }
+                            request = requestId.get();
                             if (!this.enabledActionMap.containsKey("TMSendGlobalCommit")) {
                                 return null;
                             }
@@ -113,7 +148,11 @@ public class TPCActionMapper extends BaseActionMapper {
                     break;
                 case "ReceiveEvent":
                     event = (String) abstractAction.params.get("event");
-                    int i_val = Integer.parseInt((String) abstractAction.params.get("request_id"));
+                    Optional<Integer> requestId = getRequestId(abstractAction);
+                    if (requestId.isEmpty()) {
+                        return null;
+                    }
+                    int i_val = requestId.get();
                     int r_val = -1;
                     String actionMapKey = "";
                     switch (event) {
