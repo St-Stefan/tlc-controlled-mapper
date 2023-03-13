@@ -56,12 +56,22 @@ public class TPCActionMapper extends BaseActionMapper {
                 case "SendEvent":
                     String event = (String) abstractAction.params.get("event");
                     switch (event) {
-                        case "TwoPhaseCommit.RequestEvent":
+                        case "TwoPhaseCommit.ClientRequestEvent":
                             Optional<Integer> requestId = getRequestId(abstractAction);
                             if (requestId.isEmpty()) {
                                 return null;
                             }
                             int request = requestId.get();
+                            if (!this.enabledActionMap.containsKey("NextRequest")) {
+                                return null;
+                            }
+                            return this.enabledActionMap.get("NextRequest").get(0);
+                        case "TwoPhaseCommit.RequestEvent":
+                            requestId = getRequestId(abstractAction);
+                            if (requestId.isEmpty()) {
+                                return null;
+                            }
+                            request = requestId.get();
                             if (!this.enabledActionMap.containsKey("TMSendPrepareReq")) {
                                 return null;
                             }

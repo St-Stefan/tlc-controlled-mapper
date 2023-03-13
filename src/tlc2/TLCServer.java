@@ -56,7 +56,7 @@ public class TLCServer extends TLC {
                 if(nextAction.isReset() || nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
                     return statesVisited;
                 }
-                nextStates.addElements(tool.getNextStates(nextAction.action, curState));
+                nextStates = nextStates.addElements(tool.getNextStates(nextAction.action, curState));
                 if(nextStates.empty()) {
                     statesVisited.add(curState);
                 }
@@ -203,9 +203,5 @@ public class TLCServer extends TLC {
         } catch (Exception e) {
             System.out.println("Error running server: "+e.getMessage());
         }
-
-        // TODO: add interrupt handling
-        // TOOD: better logging
-        // TODO: define server capabilities
     }
 }
