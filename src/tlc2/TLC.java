@@ -152,7 +152,7 @@ public class TLC {
      * Fingerprint set function index to use.
      * By default one is picked at random.
      */
-    private int fpIndex;
+    protected int fpIndex;
     /**
      * The number of traces/behaviors to generate in simulation mode
      */

@@ -26,6 +26,7 @@ import tlc2.tool.impl.FastTool;
 import tlc2.tool.impl.Tool;
 import tlc2.value.impl.CounterExample;
 import tlc2.util.RandomGenerator;
+import tlc2.util.FP64;
 import util.FileUtil;
 import util.SimpleFilenameToStream;
 
@@ -33,6 +34,10 @@ public class TLCServer extends TLC {
 
     public TLCServer() {
         super();
+    }
+
+    public void init() {
+        FP64.Init(fpIndex);
     }
 
     public List<TLCState> simulate(String input) throws Exception{
@@ -138,6 +143,16 @@ public class TLCServer extends TLC {
         return initStates;
     }
 
+    public static class ServerResponse {
+        public List<String> states;
+
+        public List<Long> keys;
+
+        public ServerResponse(List<String> states, List<Long> keys) {
+            this.states = states;
+            this.keys = keys;
+        }
+    }
 
     public static void main(String[] args) throws Exception {
         final TLCServer tlcServer = new TLCServer();
@@ -150,6 +165,8 @@ public class TLCServer extends TLC {
         } else {
             tlcServer.setResolver(new SimpleFilenameToStream());
         }
+        tlcServer.init();
+        
         int serverPort = 2023;
         int index = 0;
 		while (index < args.length) {
@@ -179,11 +196,13 @@ public class TLCServer extends TLC {
                         String request = new String(requestBytes, StandardCharsets.UTF_8);
                         List<TLCState> trace = tlcServer.simulate(request);
                         List<String> stringTrace = new ArrayList<>();
+                        List<Long> fingerprintTrace = new ArrayList<>();
                         for( TLCState state : trace) {
                             stringTrace.add(state.toString());
+                            fingerprintTrace.add(state.fingerPrint());
                         }
                         Gson gson = new Gson();
-                        String response = gson.toJson(stringTrace);
+                        String response = gson.toJson(new ServerResponse(stringTrace, fingerprintTrace));
                         t.sendResponseHeaders(200, response.length());
                         OutputStream responseStream = t.getResponseBody();
                         responseStream.write(response.getBytes());
