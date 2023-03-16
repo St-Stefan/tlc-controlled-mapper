@@ -38,6 +38,7 @@ public abstract class BaseActionMapper implements ActionMapper {
                 }
             }
         }
+        System.out.println("Mapped to "+outList.size()+" actions!");
         return outList;
     }
 
