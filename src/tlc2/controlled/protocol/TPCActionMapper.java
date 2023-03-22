@@ -6,29 +6,13 @@ import tlc2.value.impl.Value;
 
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Optional;
 
 // TwoPhaseCommit (TwoPhaseCommit with parametric number of transaction requests) action mapper
 public class TPCActionMapper extends BaseActionMapper {
 
-    private HashMap<String, List<Action>> enabledActionMap;
-
     public TPCActionMapper(List<Action> enabledActions) {
         super(enabledActions);
-        this.enabledActionMap = new HashMap<String, List<Action>>();
-        for (Action a: enabledActions) {
-            String name = a.getName().toString();
-            List<Action> currentActions;
-            if (!this.enabledActionMap.containsKey(name)) {
-                currentActions = new ArrayList<Action>();
-            } else {
-                currentActions = this.enabledActionMap.get(name);
-            }
-            currentActions.add(a);
-            this.enabledActionMap.put(name, currentActions);
-        }
     }
 
     private Optional<Integer> getRequestId(AbstractAction abstractAction) {

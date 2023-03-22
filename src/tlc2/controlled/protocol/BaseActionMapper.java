@@ -10,9 +10,22 @@ import tlc2.tool.Action;
 public abstract class BaseActionMapper implements ActionMapper {
     
     protected final List<Action> enabledActions;
+    protected HashMap<String, List<Action>> enabledActionMap;
 
     public BaseActionMapper(List<Action> enabledActions) {
         this.enabledActions = enabledActions;
+        this.enabledActionMap = new HashMap<String, List<Action>>();
+        for (Action a: enabledActions) {
+            String name = a.getName().toString();
+            List<Action> currentActions;
+            if (!this.enabledActionMap.containsKey(name)) {
+                currentActions = new ArrayList<Action>();
+            } else {
+                currentActions = this.enabledActionMap.get(name);
+            }
+            currentActions.add(a);
+            this.enabledActionMap.put(name, currentActions);
+        }
     }
 
     protected abstract Action mapAction(AbstractAction a);
