@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 
+import javax.swing.ActionMap;
+
 import com.google.gson.Gson;
 import com.sun.net.httpserver.*;
 
@@ -32,8 +34,13 @@ import util.SimpleFilenameToStream;
 
 public class TLCServer extends TLC {
 
+    private final ITool tool;
+    private final ActionMapper mapper;
+
     public TLCServer() {
         super();
+        tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
+        mapper = ActionMapperFactory.getMapper(Arrays.asList(tool.getActions()), tool.getRootName());
     }
 
     public void init() {
@@ -42,10 +49,7 @@ public class TLCServer extends TLC {
 
     public List<TLCState> simulate(String input) throws Exception{
         
-        ITool tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
-        StateVec initStates = computeInitStates(tool);
-
-        ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(tool.getActions()), tool.getRootName());
+        StateVec initStates = computeInitStates(this.tool);
 		Queue<ActionWrapper> actionsToRun = new ArrayDeque<ActionWrapper>();
 		List<TLCState> statesVisited = new ArrayList<TLCState>();
 
@@ -53,7 +57,7 @@ public class TLCServer extends TLC {
         TLCState curState = randomState(initStates);
 
         statesVisited.add(curState);
-        actionsToRun.addAll(mapper.mapListOfActions(input));
+        actionsToRun.addAll(this.mapper.mapListOfActions(input));
         while(true) {
             nextStates.clear();
             while(nextStates.empty()) {
@@ -155,6 +159,7 @@ public class TLCServer extends TLC {
     }
 
     public static void main(String[] args) throws Exception {
+        System.out.println("Initializing...");
         final TLCServer tlcServer = new TLCServer();
         if (!tlcServer.handleParameters(args)) {
             System.exit(1);
