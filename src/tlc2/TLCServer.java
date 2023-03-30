@@ -10,8 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
 
-import javax.swing.ActionMap;
-
 import com.google.gson.Gson;
 import com.sun.net.httpserver.*;
 
@@ -34,16 +32,16 @@ import util.SimpleFilenameToStream;
 
 public class TLCServer extends TLC {
 
-    private final ITool tool;
-    private final ActionMapper mapper;
+    private ITool tool;
+    private ActionMapper mapper;
 
     public TLCServer() {
         super();
-        tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
-        mapper = ActionMapperFactory.getMapper(Arrays.asList(tool.getActions()), tool.getRootName());
     }
 
     public void init() {
+        this.tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
+        this.mapper = ActionMapperFactory.getMapper(Arrays.asList(this.tool.getActions()), this.tool.getRootName());
         FP64.Init(fpIndex);
     }
 

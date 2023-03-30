@@ -172,9 +172,9 @@ public class TPCActionMapper extends BaseActionMapper {
                             // Map to "RMRcvGlobalAbort"
                         case "TwoPhaseCommit.GlobalCommitEvent":
                             r_val = Integer.parseInt((String) abstractAction.params.get("receiver_id"));
-                            actionMapKey = "RmRcvGlobalCommit";
+                            actionMapKey = "RMRcvGlobalCommit";
                             break;
-                            // Map to "RmRcvGlobalCommit"
+                            // Map to "RMRcvGlobalCommit"
                     }
                     if (actionMapKey != "" && this.enabledActionMap.containsKey(actionMapKey)) {
                         for (Action a: this.enabledActionMap.get(actionMapKey)) {
