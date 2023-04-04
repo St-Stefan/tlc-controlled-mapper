@@ -1,6 +1,7 @@
 package tlc2.controlled.protocol;
 
 import java.util.*;
+import java.lang.reflect.*;
 
 import com.google.gson.*;
 import com.google.gson.annotations.*;
@@ -51,13 +52,27 @@ public abstract class BaseActionMapper implements ActionMapper {
                 }
             }
         }
-        System.out.println("Mapped to "+outList.size()+" actions!");
         return outList;
+    }
+
+    private static class ByteArrayToBase64TypeAdapter implements JsonSerializer<byte[]>, JsonDeserializer<byte[]> {
+        public byte[] deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+            return Base64.getDecoder().decode(json.getAsString());
+        }
+
+        public JsonElement serialize(byte[] src, Type typeOfSrc, JsonSerializationContext context) {
+            return new JsonPrimitive(Base64.getEncoder().encodeToString(src));
+        }
+    }
+
+    private static Gson getGsonInstance() {
+        return new GsonBuilder().registerTypeHierarchyAdapter(byte[].class,
+            new ByteArrayToBase64TypeAdapter()).create();
     }
 
     protected AbstractAction fromJson(String jsonString) {
         try{
-            Gson gson = new Gson();
+            Gson gson = getGsonInstance();
             AbstractAction action = gson.fromJson(jsonString, AbstractAction.class);
             return action;
         } catch (JsonSyntaxException e) {
@@ -69,7 +84,7 @@ public abstract class BaseActionMapper implements ActionMapper {
     protected List<AbstractAction> listFromJson(String listJsonString) {
         List<AbstractAction> actions = new ArrayList<AbstractAction>();
         try{
-            Gson gson = new Gson();
+            Gson gson = getGsonInstance();
             AbstractAction[] array = gson.fromJson(listJsonString, AbstractAction[].class);
             actions.addAll(Arrays.asList(array));
         } catch (JsonSyntaxException e) {
@@ -79,7 +94,6 @@ public abstract class BaseActionMapper implements ActionMapper {
         return actions;
     }
 
-    // TODO: Each model can have its own AbstractAction class (e.g., Raft has objects as message parameters instead of strings)
     protected class AbstractAction {
 
         @SerializedName(value = "name", alternate = {"Name"})
