@@ -9,8 +9,68 @@ import tlc2.value.impl.Value;
 
 public class RaftActionMapper extends BaseActionMapper{
 
+    private HashMap<String, Action> mappedActions;
+
     public RaftActionMapper(List<Action> enabledActions) {
         super(enabledActions);
+        mappedActions = new HashMap<String, Action>();
+        for (Action a : enabledActions) {
+            String name = a.getName().toString();
+            switch(name){
+                case "HandleRequestVoteRequest":
+                    Map<String, Value> params = a.getParams();
+                    IntValue iP = (IntValue) params.get("i");
+                    IntValue jP = (IntValue) params.get("j");
+                    IntValue lTermP = (IntValue) params.get("lTerm");
+                    IntValue lIndexP = (IntValue) params.get("lIndex");
+                    IntValue termP = (IntValue) params.get("term");
+                    String key = String.format("%s_%d_%d_%d_%d_%d", name, iP.val, jP.val, lTermP.val, lIndexP.val, termP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "HandleRequestVoteResponse":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    jP = (IntValue) params.get("j");
+                    termP  = (IntValue) params.get("term");
+                    BoolValue grantP = (BoolValue) params.get("grant");
+                    key = String.format("%s_%d_%d_%d_%b", name, iP.val, jP.val, termP.val, grantP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "HandleNilAppendEntriesRequest":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    jP = (IntValue) params.get("j");
+                    termP  = (IntValue) params.get("term");
+                    IntValue pLogIndexP  = (IntValue) params.get("pLogIndex");
+                    IntValue pLogTermP  = (IntValue) params.get("pLogTerm");
+                    IntValue cIndexP = (IntValue) params.get("cIndex");
+                    key = String.format("%s_%d_%d_%d_%d_%d_%d", name, iP.val, jP.val, termP.val, pLogIndexP.val, pLogTermP.val, cIndexP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "HandleAppendEntriesRequest":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    jP = (IntValue) params.get("j");
+                    termP  = (IntValue) params.get("term");
+                    pLogIndexP  = (IntValue) params.get("pLogIndex");
+                    pLogTermP  = (IntValue) params.get("pLogTerm");
+                    IntValue entryTermP = (IntValue) params.get("entryTerm");
+                    IntValue entryValueP = (IntValue) params.get("entryValue");
+                    cIndexP = (IntValue) params.get("cIndex");
+                    key = String.format("%s_%d_%d_%d_%d_%d_%d_%d_%d", name, iP.val, jP.val, termP.val, pLogIndexP.val, pLogTermP.val, entryTermP.val, entryValueP.val, cIndexP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "HandleAppendEntriesResponse":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    jP = (IntValue) params.get("j");
+                    termP  = (IntValue) params.get("term");
+                    BoolValue successP = (BoolValue) params.get("success");
+                    IntValue mIndexP = (IntValue) params.get("mIndex");
+                    key = String.format("%s_%d_%d_%d_%b_%d", name, iP.val, jP.val, termP.val, successP.val, mIndexP.val);
+                    break;
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -95,62 +155,34 @@ public class RaftActionMapper extends BaseActionMapper{
     }
 
     protected Action mapHandleRequestVoteRequest(int i, int j, int lTerm, int lIndex, int term) {
-        for (Action a: this.enabledActionMap.get("HandleRequestVoteRequest")) {
-            Map<String, Value> params = a.getParams();
-            IntValue iP = (IntValue) params.get("i");
-            IntValue jP = (IntValue) params.get("j");
-            IntValue lTermP = (IntValue) params.get("lTerm");
-            IntValue lIndexP = (IntValue) params.get("lIndex");
-            IntValue termP = (IntValue) params.get("term");
-            if (iP.val == i && jP.val == j && lTermP.val == lTerm && lIndexP.val == lIndex && termP.val == term) {
-                return a;
-            }
-        }
+        String key = String.format("%s_%d_%d_%d_%d_%d","HandleRequestVoteRequest", i, j, lTerm, lIndex, term);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        } 
         return null;
     }
 
     protected Action mapHandleRequestVoteResponse(int i, int j, int term, boolean grant) {
-        for (Action a: this.enabledActionMap.get("HandleRequestVoteResponse")) {
-            Map<String, Value> params = a.getParams();
-            IntValue iP = (IntValue) params.get("i");
-            IntValue jP = (IntValue) params.get("j");
-            IntValue termP  = (IntValue) params.get("term");
-            BoolValue grantP = (BoolValue) params.get("grant");
-            if (iP.val == i && jP.val == j && grant == grantP.val && termP.val == term) {
-                return a;
-            }
-        }
+        String key = String.format("%s_%d_%d_%d_%b", "HandleRequestVoteResponse", i, j, term, grant);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        } 
         return null;
     }
 
     protected Action mapHandleAppendEntriesResponse(int i, int j, int term, boolean success, int mIndex) {
-        for (Action a: this.enabledActionMap.get("HandleAppendEntriesResponse")) {
-            Map<String, Value> params = a.getParams();
-            IntValue iP = (IntValue) params.get("i");
-            IntValue jP = (IntValue) params.get("j");
-            IntValue termP  = (IntValue) params.get("term");
-            BoolValue successP = (BoolValue) params.get("success");
-            IntValue mIndexP = (IntValue) params.get("mIndex");
-            if (iP.val == i && jP.val == j && success == successP.val && termP.val == term && mIndex == mIndexP.val) {
-                return a;
-            }
-        }
+        String key = String.format("%s_%d_%d_%d_%b_%d", "HandleAppendEntriesResponse", i, j, term, success, mIndex);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        } 
         return null;
     }
 
     protected Action mapHandleAppendEntriesRequest(int i,int j,int pLogIndex,int pLogTerm,int term, List<Map<String, Object>> entries ,int cIndex) {
         if(entries.size() == 0) {
-            for (Action a: this.enabledActionMap.get("HandleNilAppendEntriesRequest")) {
-                Map<String, Value> params = a.getParams();
-                IntValue iP = (IntValue) params.get("i");
-                IntValue jP = (IntValue) params.get("j");
-                IntValue termP  = (IntValue) params.get("term");
-                IntValue pLogIndexP  = (IntValue) params.get("pLogIndex");
-                IntValue pLogTermP  = (IntValue) params.get("pLogTerm");
-                IntValue cIndexP = (IntValue) params.get("cIndex");
-                if (iP.val == i && jP.val == j && termP.val == term && cIndex == cIndexP.val && pLogIndex == pLogIndexP.val && pLogTerm == pLogTermP.val) {
-                    return a;
-                }
+            String key = String.format("%s_%d_%d_%d_%d_%d_%d", "HandleNilAppendEntriesRequest", i, j, term, pLogIndex, pLogTerm, cIndex);
+            if (this.mappedActions.containsKey(key)) {
+                return this.mappedActions.get(key);
             }
         } else {
             Double eTerm = (Double) entries.get(0).get("Term");
@@ -164,27 +196,9 @@ public class RaftActionMapper extends BaseActionMapper{
                     return null;
                 }
             }
-            for (Action a: this.enabledActionMap.get("HandleAppendEntriesRequest")) {
-                Map<String, Value> params = a.getParams();
-                IntValue iP = (IntValue) params.get("i");
-                IntValue jP = (IntValue) params.get("j");
-                IntValue termP  = (IntValue) params.get("term");
-                IntValue pLogIndexP  = (IntValue) params.get("pLogIndex");
-                IntValue pLogTermP  = (IntValue) params.get("pLogTerm");
-                IntValue entryTermP = (IntValue) params.get("entryTerm");
-                IntValue entryValueP = (IntValue) params.get("entryValue");
-                IntValue cIndexP = (IntValue) params.get("cIndex");
-                if (iP.val == i && 
-                    jP.val == j && 
-                    termP.val == term && 
-                    cIndex == cIndexP.val && 
-                    pLogIndex == pLogIndexP.val && 
-                    pLogTerm == pLogTermP.val && 
-                    eTerm.intValue() == entryTermP.val &&
-                    eValue == entryValueP.val
-                ) {
-                    return a;
-                }
+            String key = String.format("%s_%d_%d_%d_%d_%d_%d_%d_%d", "HandleAppendEntriesRequest", i, j, term, pLogIndex, pLogTerm, eTerm, eValue, cIndex);
+            if (this.mappedActions.containsKey(key)) {
+                return this.mappedActions.get(key);
             }
         }
         return null;
