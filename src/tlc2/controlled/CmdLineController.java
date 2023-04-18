@@ -27,8 +27,8 @@ public class CmdLineController extends ActionController {
         statesVisited.add(initialState);
         currentState = initialState;
 
-        System.out.println("List of actions: ");
-        System.out.println(getActionsAsStr(actions));
+        // System.out.println("List of actions: ");
+        // System.out.println(getActionsAsStr(actions));
     }
 
     @Override
@@ -37,8 +37,15 @@ public class CmdLineController extends ActionController {
         // System.out.println("[Controller] Current state: " + currentState.toString());
         // System.out.println("[Controller] Actions: \n" + getActionsAsStr(actions)); //TODO Global setting for prints
         System.out.println("[Controller] Enter the next action (-1 for quit): " );
-
-        return new ArrayList<>(mapper.mapListOfActions(readInput()));
+        List<ActionWrapper> mappedActions = new ArrayList<>();
+        while (mappedActions.size() == 0) {
+            String input = readInput();
+            mappedActions = mapper.mapListOfActions(input);
+            if (mappedActions.size() == 0) {
+                System.out.println("[Controller] Input does not map to any action, please try again");
+            }
+        }
+        return mappedActions;
     }
 
     @Override

@@ -230,8 +230,8 @@ public class RaftActionMapper extends BaseActionMapper{
                             Optional<Double> logTerm  = this.getParam(abstractAction, "log_term");
                             Optional<Double> logIndex = this.getParam(abstractAction, "index");
                             return mapHandleRequestVoteRequest(
-                                sender.get().intValue(), 
                                 receiver.get().intValue(), 
+                                sender.get().intValue(), 
                                 logTerm.get().intValue(), 
                                 logIndex.get().intValue(), 
                                 term.get().intValue()
@@ -243,8 +243,8 @@ public class RaftActionMapper extends BaseActionMapper{
                             term = this.getParam(abstractAction, "term");
                             Optional<Boolean> grant = this.getParam(abstractAction, "reject");
                             return mapHandleRequestVoteResponse(
-                                sender.get().intValue(), 
                                 receiver.get().intValue(),
+                                sender.get().intValue(), 
                                 term.get().intValue(),
                                 !grant.get().booleanValue()
                             );
@@ -261,8 +261,8 @@ public class RaftActionMapper extends BaseActionMapper{
                                 return null;
                             }
                             return mapHandleAppendEntriesRequest(
-                                sender.get().intValue(), 
                                 receiver.get().intValue(), 
+                                sender.get().intValue(), 
                                 pLogIndex.get().intValue(), 
                                 pLogTerm.get().intValue(), 
                                 term.get().intValue(), 
@@ -277,8 +277,8 @@ public class RaftActionMapper extends BaseActionMapper{
                             grant = this.getParam(abstractAction, "reject");
                             Optional<Double> mIndex = this.getParam(abstractAction, "index");
                             return mapHandleAppendEntriesResponse(
-                                sender.get().intValue(), 
                                 receiver.get().intValue(),
+                                sender.get().intValue(), 
                                 term.get().intValue(),
                                 !grant.get().booleanValue(),
                                 mIndex.get().intValue()
