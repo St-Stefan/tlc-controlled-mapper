@@ -68,6 +68,7 @@ public class RaftActionMapper extends BaseActionMapper{
                     BoolValue successP = (BoolValue) params.get("success");
                     IntValue mIndexP = (IntValue) params.get("mIndex");
                     key = String.format("%s_%d_%d_%d_%b_%d", name, iP.val, jP.val, termP.val, successP.val, mIndexP.val);
+                    mappedActions.put(key, a);
                     break;
             }
         }
@@ -196,7 +197,7 @@ public class RaftActionMapper extends BaseActionMapper{
                     return null;
                 }
             }
-            String key = String.format("%s_%d_%d_%d_%d_%d_%d_%d_%d", "HandleAppendEntriesRequest", i, j, term, pLogIndex, pLogTerm, eTerm, eValue, cIndex);
+            String key = String.format("%s_%d_%d_%d_%d_%d_%d_%d_%d", "HandleAppendEntriesRequest", i, j, term, pLogIndex, pLogTerm, eTerm.intValue(), eValue, cIndex);
             if (this.mappedActions.containsKey(key)) {
                 return this.mappedActions.get(key);
             }
@@ -297,15 +298,9 @@ public class RaftActionMapper extends BaseActionMapper{
                         return null;
                     }
                     return mapTimeout(nodeID.get().intValue());
-                case "AdvanceCommitIndex":
-                    nodeID = this.getParam(abstractAction, "node");
-                    if(nodeID.isEmpty()) {
-                        return null;
-                    }
-                    return mapAdvanceCommitIndex(nodeID.get().intValue());
             }
         } catch (Exception e) {
-
+            e.getMessage();
         }
         return null;
 
