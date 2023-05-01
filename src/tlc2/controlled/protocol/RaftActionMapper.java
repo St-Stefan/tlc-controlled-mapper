@@ -117,7 +117,9 @@ public class RaftActionMapper extends BaseActionMapper{
     }
 
     protected Action mapBecomeLeader(int node) {
-        for (Action a : this.enabledActionMap.get("BecomeLeader")) {
+        // String actionKey = "BecomeLeader";
+        String actionKey = "ElectLeader";
+        for (Action a : this.enabledActionMap.get(actionKey)) {
             Map<String, Value> params = a.getParams();
             if(params.containsKey("i")) {
                 IntValue i = (IntValue) params.get("i");
@@ -156,18 +158,18 @@ public class RaftActionMapper extends BaseActionMapper{
     }
 
     protected Action mapHandleRequestVoteRequest(int i, int j, int lTerm, int lIndex, int term) {
-        String key = String.format("%s_%d_%d_%d_%d_%d","HandleRequestVoteRequest", i, j, lTerm, lIndex, term);
-        if (this.mappedActions.containsKey(key)) {
-            return this.mappedActions.get(key);
-        } 
+        // String key = String.format("%s_%d_%d_%d_%d_%d","HandleRequestVoteRequest", i, j, lTerm, lIndex, term);
+        // if (this.mappedActions.containsKey(key)) {
+        //     return this.mappedActions.get(key);
+        // } 
         return null;
     }
 
     protected Action mapHandleRequestVoteResponse(int i, int j, int term, boolean grant) {
-        String key = String.format("%s_%d_%d_%d_%b", "HandleRequestVoteResponse", i, j, term, grant);
-        if (this.mappedActions.containsKey(key)) {
-            return this.mappedActions.get(key);
-        } 
+        // String key = String.format("%s_%d_%d_%d_%b", "HandleRequestVoteResponse", i, j, term, grant);
+        // if (this.mappedActions.containsKey(key)) {
+        //     return this.mappedActions.get(key);
+        // } 
         return null;
     }
 
