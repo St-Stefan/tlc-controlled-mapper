@@ -72,7 +72,7 @@ public class Simulator {
 			long traceNum, RandomGenerator rng, long seed, FilenameToStream resolver,
 			int numWorkers) throws IOException {
 		this(new FastTool(extracted(specFile), configFile, resolver, Tool.Mode.Simulation, new HashMap<>()), "", traceFile, deadlock,
-				traceDepth, traceNum, null, rng, seed, resolver, numWorkers);
+				traceDepth, traceNum, null, rng, seed, resolver, numWorkers, new HashMap<>());
 	}
 
 	private static String extracted(String specFile) {
@@ -81,8 +81,14 @@ public class Simulator {
 	}
 
 	public Simulator(ITool tool, String metadir, String traceFile, boolean deadlock, int traceDepth,
+		long traceNum, String traceActions, RandomGenerator rng, long seed, FilenameToStream resolver,
+		int numWorkers) throws IOException {
+			this(tool, metadir, traceFile, deadlock, traceDepth, traceNum, traceActions, rng, seed, resolver, numWorkers, new HashMap<>());
+	}
+
+	public Simulator(ITool tool, String metadir, String traceFile, boolean deadlock, int traceDepth,
 				long traceNum, String traceActions, RandomGenerator rng, long seed, FilenameToStream resolver,
-				int numWorkers) throws IOException {
+				int numWorkers, Map<String, String> mapperParams) throws IOException {
 		this.tool = tool;
 
 		this.checkDeadlock = deadlock && tool.getModelConfig().getCheckDeadlock();
@@ -129,7 +135,7 @@ public class Simulator {
 				if(TLCGlobals.controlled) {
 					this.workers.add(new ControlledWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
 							this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,
-							this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean));
+							this.liveCheck, this.numOfGenStates, this.numOfGenTraces, this.welfordM2AndMean, mapperParams));
 				} else {
 					this.workers.add(new SimulationWorker(i, this.tool, this.workerResultQueue, this.rng.nextLong(),
 							this.traceDepth, this.traceNum, this.traceActions, this.checkDeadlock, this.traceFile,

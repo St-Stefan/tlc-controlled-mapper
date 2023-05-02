@@ -26,6 +26,7 @@
 package tlc2.tool;
 
 import java.io.IOException;
+import java.util.Map;
 
 import tlc2.TLCGlobals;
 import tlc2.output.EC;
@@ -56,8 +57,8 @@ public class SingleThreadedSimulator extends Simulator {
 	 * Phaser, ...
 	 */
 	public SingleThreadedSimulator(ITool tool, String metadir, String traceFile, boolean deadlock, int traceDepth,
-			long traceNum, String traceActions, RandomGenerator rng, long seed, FilenameToStream resolver) throws IOException {
-		super(tool, metadir, traceFile, deadlock, traceDepth, traceNum, traceActions, rng, seed, resolver, 1);
+			long traceNum, String traceActions, RandomGenerator rng, long seed, FilenameToStream resolver, Map<String, String> mapperParams) throws IOException {
+		super(tool, metadir, traceFile, deadlock, traceDepth, traceNum, traceActions, rng, seed, resolver, 1, mapperParams);
 	}
 
 	@Override

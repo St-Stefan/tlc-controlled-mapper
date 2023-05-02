@@ -180,6 +180,8 @@ public class TLC {
     private FPSetConfiguration fpSetConfiguration;
     
     protected final Map<String, Object> params;
+
+    protected final Map<String, String> mapperParams;
     
     private int debugPort = -1;
     private boolean suspend = true;
@@ -225,6 +227,7 @@ public class TLC {
         fpSetConfiguration = new FPSetConfiguration();
 
         params = new HashMap<>();
+        mapperParams = new HashMap<>();
 	}
 
     /*
@@ -959,6 +962,25 @@ public class TLC {
                     printErrorMsg("Error: fpbits required.");
                     return false;
                 }
+            } else if (args[index].equals("-mapperparams")) 
+            {
+                index++;
+                if (index < args.length) {
+                    try {
+                        for (String keyValue : args[index].split(";")) {
+                            String[] opts = keyValue.split("=");
+                            if(opts.length == 1) {
+                                this.mapperParams.put(opts[0], "");
+                            } else if(opts.length == 2) {
+                                this.mapperParams.put(opts[0], opts[1]);
+                            }
+                        }
+                        TLCGlobals.mapperParams = this.mapperParams;
+                        index++;
+                    } catch (NumberFormatException e) {
+                        return false;
+                    }
+                }
             } else
             {
                 if (args[index].charAt(0) == '-')
@@ -1166,15 +1188,15 @@ public class TLC {
 						tool = new DebugTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params, instance);
 					}
 					simulator = new SingleThreadedSimulator(tool, metadir, traceFile, deadlock, traceDepth, 
-	                        traceNum, traceActions, rng, seed, resolver);
+	                        traceNum, traceActions, rng, seed, resolver, this.mapperParams);
                 } else if(TLCGlobals.controlled) {
                     tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
                     simulator = new SingleThreadedSimulator(tool, metadir, traceFile, deadlock, traceDepth,
-                            traceNum, traceActions, rng, seed, resolver);
+                            traceNum, traceActions, rng, seed, resolver, this.mapperParams);
                 } else {
                     tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
                     simulator = new Simulator(tool, metadir, traceFile, deadlock, traceDepth,
-                            traceNum, traceActions, rng, seed, resolver, TLCGlobals.getNumWorkers());
+                            traceNum, traceActions, rng, seed, resolver, TLCGlobals.getNumWorkers(), this.mapperParams);
                 }
 				TLCGlobals.simulator = simulator;
                 result = simulator.simulate();

@@ -10,6 +10,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -188,6 +190,8 @@ public class TLCGlobals
 
     // true for controlled steps in simulation
     public static boolean controlled = false;
+
+	public static Map<String, String> mapperParams = new HashMap<>();
 
 	public static boolean isValidSetSize(final int bound) {
 		if (bound < 1) {

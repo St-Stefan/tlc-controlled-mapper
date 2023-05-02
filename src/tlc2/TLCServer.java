@@ -41,7 +41,7 @@ public class TLCServer extends TLC {
 
     public void init() {
         this.tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
-        this.mapper = ActionMapperFactory.getMapper(Arrays.asList(this.tool.getActions()), this.tool.getRootName());
+        this.mapper = ActionMapperFactory.getMapper(this.mapperParams, Arrays.asList(this.tool.getActions()), this.tool.getRootName());
         FP64.Init(fpIndex);
     }
 

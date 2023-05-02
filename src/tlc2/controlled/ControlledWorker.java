@@ -58,18 +58,22 @@ public class ControlledWorker extends SimulationWorker {
 
 	protected static final boolean coverage = TLCGlobals.isCoverageEnabled();
 
+	protected Map<String, String> mapperParams;
+
 	public ControlledWorker(int id, ITool tool, BlockingQueue<SimulationWorker.SimulationWorkerResult> resultQueue,
 								long seed, int maxTraceDepth, long maxTraceNum, boolean checkDeadlock, String traceFile,
-								ILiveCheck liveCheck) {
+								ILiveCheck liveCheck, Map<String, String> mapperParams) {
 		super(id, tool, resultQueue, seed, maxTraceDepth, maxTraceNum, null, checkDeadlock, traceFile, liveCheck,
 				new LongAdder(), new AtomicLong(), new AtomicLong());
+				this.mapperParams = mapperParams;
 	}
 
 	public ControlledWorker(int id, ITool tool, BlockingQueue<SimulationWorker.SimulationWorkerResult> resultQueue,
 			long seed, int maxTraceDepth, long maxTraceNum, String traceActions, boolean checkDeadlock, String traceFile,
-			ILiveCheck liveCheck, LongAdder numOfGenStates, AtomicLong numOfGenTraces, AtomicLong m2AndMean) {
+			ILiveCheck liveCheck, LongAdder numOfGenStates, AtomicLong numOfGenTraces, AtomicLong m2AndMean, Map<String, String> mapperParams) {
 		super(id, tool, resultQueue, seed, maxTraceDepth, maxTraceNum, traceActions, checkDeadlock,
 				traceFile, liveCheck, numOfGenStates, numOfGenTraces, m2AndMean);
+		this.mapperParams = mapperParams;
 	}
 
 	protected boolean simulateAndReport() {
@@ -154,7 +158,7 @@ public class ControlledWorker extends SimulationWorker {
 
 		System.out.println("[Worker] Initial state: " + curState);
 
-		ActionMapper mapper = ActionMapperFactory.getMapper(Arrays.asList(this.tool.getActions()), this.tool.getRootName());
+		ActionMapper mapper = ActionMapperFactory.getMapper(this.mapperParams, Arrays.asList(this.tool.getActions()), this.tool.getRootName());
 		// new RemoteController(mapper, this.tool.getActions());
 		ActionController controller = new CmdLineController(mapper, this.tool.getActions(), curState);
 
