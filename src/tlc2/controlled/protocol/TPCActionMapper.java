@@ -139,7 +139,7 @@ public class TPCActionMapper extends BaseActionMapper {
                     String event = (String) abstractAction.params.get("event");
                     switch (event) {
                         case "TwoPhaseCommit.ClientRequestEvent":
-                            this.mapClientRequest();
+                            return this.mapClientRequest();
                         case "TwoPhaseCommit.RequestEvent":
                             Optional<Integer> requestId = getRequestId(abstractAction);
                             if (requestId.isEmpty()) {
