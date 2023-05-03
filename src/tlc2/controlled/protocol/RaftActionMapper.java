@@ -298,6 +298,98 @@ public class RaftActionMapper extends BaseActionMapper{
                         return null;
                     }
                     return mapTimeout(nodeID.get().intValue());
+                case "SendEvent":
+                    String event = (String) abstractAction.params.get("event"); 
+                    switch (event) {
+                        case "Microsoft.Coyote.Samples.CloudMessaging.Events.VoteRequestEvent":
+                            // Handle request vote 
+                            Optional<Double> sender = this.getParam(abstractAction, "sender_id");
+                            Optional<Double> receiver = this.getParam(abstractAction, "receiver_id");
+                            Optional<Double> term = this.getParam(abstractAction, "term");
+                            Optional<Double> logTerm  = this.getParam(abstractAction, "log_term");
+                            Optional<Double> logIndex = this.getParam(abstractAction, "index");
+                            return mapHandleRequestVoteRequest(
+                                receiver.get().intValue(), 
+                                sender.get().intValue(), 
+                                logTerm.get().intValue(), 
+                                logIndex.get().intValue(), 
+                                term.get().intValue()
+                            );
+                        case "Microsoft.Coyote.Samples.CloudMessaging.Events.VoteResponseEvent":
+                            // Handle request vote response
+                            sender = this.getParam(abstractAction, "sender_id");
+                            receiver = this.getParam(abstractAction, "receiver_id");
+                            term = this.getParam(abstractAction, "term");
+                            Optional<Boolean> grant = this.getParam(abstractAction, "reject");
+                            return mapHandleRequestVoteResponse(
+                                receiver.get().intValue(),
+                                sender.get().intValue(), 
+                                term.get().intValue(),
+                                !grant.get().booleanValue()
+                            );
+                        case "Microsoft.Coyote.Samples.CloudMessaging.Events.AppendLogEntriesRequestEvent":
+                            // Handle append entries request
+                            sender = this.getParam(abstractAction, "sender_id");
+                            receiver = this.getParam(abstractAction, "receiver_id");
+                            term = this.getParam(abstractAction, "term");
+                            Optional<Double> cIndex = this.getParam(abstractAction, "commit");
+                            Optional<Double> pLogTerm  = this.getParam(abstractAction, "log_term");
+                            Optional<Double> pLogIndex = this.getParam(abstractAction, "index");
+                            Optional<List<Map<String, Object>>> entries = this.getEntries(abstractAction);
+                            if(entries.isEmpty()) {
+                                return null;
+                            }
+                            return mapHandleAppendEntriesRequest(
+                                receiver.get().intValue(), 
+                                sender.get().intValue(), 
+                                pLogIndex.get().intValue(), 
+                                pLogTerm.get().intValue(), 
+                                term.get().intValue(), 
+                                entries.get(), 
+                                cIndex.get().intValue()
+                            );
+                        case "Microsoft.Coyote.Samples.CloudMessaging.Events.AppendLogEntriesResponseEvent":
+                            // Handle append entries response
+                            sender = this.getParam(abstractAction, "sender_id");
+                            receiver = this.getParam(abstractAction, "receiver_id");
+                            term = this.getParam(abstractAction, "term");
+                            grant = this.getParam(abstractAction, "reject");
+                            Optional<Double> mIndex = this.getParam(abstractAction, "index");
+                            return mapHandleAppendEntriesResponse(
+                                receiver.get().intValue(),
+                                sender.get().intValue(), 
+                                term.get().intValue(),
+                                !grant.get().booleanValue(),
+                                mIndex.get().intValue()
+                            );
+                    }
+                case "InvokedAction":
+                    String action = (String) abstractAction.params.get("action"); 
+                    switch (action) {
+                        case "BecomeLeader":
+                            nodeID = this.getParam(abstractAction, "actor_id");
+                            if(nodeID.isEmpty()) {
+                                return null;
+                            }
+                            return mapBecomeLeader(nodeID.get().intValue());
+                        case "BecomeCandidate":
+                            nodeID = this.getParam(abstractAction, "actor_id");
+                            if(nodeID.isEmpty()) {
+                                return null;
+                            }
+                            return mapTimeout(nodeID.get().intValue());
+                    }
+                case "ReceiveEvent":
+                    event = (String) abstractAction.params.get("event"); 
+                    switch (event) {
+                        case "Microsoft.Coyote.Samples.CloudMessaging.Events.ClientRequestEvent":
+                            requestID = this.getParam(abstractAction, "request");
+                            leader = this.getParam(abstractAction, "receiver_id");
+                            if(requestID.isEmpty() || leader.isEmpty() || leader.get().intValue() < 0) {
+                                return null;
+                            }
+                            return mapClientRequest(requestID.get().intValue(), leader.get().intValue());
+                    }
             }
         } catch (Exception e) {
             e.getMessage();
