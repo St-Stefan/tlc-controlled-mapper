@@ -18,7 +18,11 @@ public class ActionMapperFactory {
             }
             return new TPCActionMapper(enabledActions, isAbstract);
         } else if (model.contains("RAFT") || name.equalsIgnoreCase("raft")) {
-            return new RaftActionMapper(enabledActions);
+            boolean isAbstract = false;
+            if(params.containsKey("abstract")) {
+                isAbstract = true;
+            }
+            return new RaftActionMapper(enabledActions, isAbstract);
         }
         return new DefaultActionMapper(enabledActions);
     }

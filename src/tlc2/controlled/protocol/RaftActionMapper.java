@@ -10,9 +10,11 @@ import tlc2.value.impl.Value;
 public class RaftActionMapper extends BaseActionMapper{
 
     private HashMap<String, Action> mappedActions;
+    private boolean isAbstract;
 
-    public RaftActionMapper(List<Action> enabledActions) {
+    public RaftActionMapper(List<Action> enabledActions, boolean isAbstract) {
         super(enabledActions);
+        this.isAbstract = isAbstract;
         mappedActions = new HashMap<String, Action>();
         for (Action a : enabledActions) {
             String name = a.getName().toString();
@@ -117,8 +119,10 @@ public class RaftActionMapper extends BaseActionMapper{
     }
 
     protected Action mapBecomeLeader(int node) {
-        // String actionKey = "BecomeLeader";
-        String actionKey = "ElectLeader";
+        String actionKey = "BecomeLeader";
+        if (this.isAbstract) {
+            actionKey = "ElectLeader";
+        }
         for (Action a : this.enabledActionMap.get(actionKey)) {
             Map<String, Value> params = a.getParams();
             if(params.containsKey("i")) {
@@ -158,18 +162,24 @@ public class RaftActionMapper extends BaseActionMapper{
     }
 
     protected Action mapHandleRequestVoteRequest(int i, int j, int lTerm, int lIndex, int term) {
-        // String key = String.format("%s_%d_%d_%d_%d_%d","HandleRequestVoteRequest", i, j, lTerm, lIndex, term);
-        // if (this.mappedActions.containsKey(key)) {
-        //     return this.mappedActions.get(key);
-        // } 
+        if (this.isAbstract) {
+            return null;
+        }
+        String key = String.format("%s_%d_%d_%d_%d_%d","HandleRequestVoteRequest", i, j, lTerm, lIndex, term);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        } 
         return null;
     }
 
     protected Action mapHandleRequestVoteResponse(int i, int j, int term, boolean grant) {
-        // String key = String.format("%s_%d_%d_%d_%b", "HandleRequestVoteResponse", i, j, term, grant);
-        // if (this.mappedActions.containsKey(key)) {
-        //     return this.mappedActions.get(key);
-        // } 
+        if (this.isAbstract) {
+            return null;
+        }
+        String key = String.format("%s_%d_%d_%d_%b", "HandleRequestVoteResponse", i, j, term, grant);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        } 
         return null;
     }
 
