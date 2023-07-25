@@ -15,7 +15,7 @@ public class RaftActionMapper extends BaseActionMapper{
     public RaftActionMapper(List<Action> enabledActions, boolean isAbstract) {
         super(enabledActions);
         this.isAbstract = isAbstract;
-        mappedActions = new HashMap<String, Action>();
+        this.mappedActions = new HashMap<String, Action>();
         for (Action a : enabledActions) {
             String name = a.getName().toString();
             switch(name){
@@ -201,8 +201,17 @@ public class RaftActionMapper extends BaseActionMapper{
             Double eTerm = (Double) entries.get(0).get("Term");
             int eValue = 0;
             if(entries.get(0).containsKey("Data")) {
-                byte[] data = (byte[]) entries.get(0).get("Data");
-                String s = new String(data, StandardCharsets.UTF_8);
+                Object data = entries.get(0).get("Data");
+                String s = "";
+                if (data instanceof byte[]) {
+                    byte[] data_b = (byte[]) entries.get(0).get("Data");
+                    s = new String(data_b, StandardCharsets.UTF_8);
+                } else if(data instanceof String) {
+                    s = (String) data;
+                } else {
+                    return null;
+                }
+
                 try {
                     eValue = Integer.parseInt(s);
                 } catch (Exception e) {
