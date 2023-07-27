@@ -103,10 +103,13 @@ public class RaftCrashesActionMapper extends BaseActionMapper{
             switch(name) {
                 case "MembershipChange":
                     String action = (String) abstractAction.params.get("action");
+                    if (action == null ) {
+                        return null;
+                    }
                     Double node = (Double) abstractAction.params.get("node");
-                    if (action == "Add") {
+                    if (action.equals("Add")) {
                         return this.mapAdd(node.intValue());
-                    } else if (action == "Remove") {
+                    } else if (action.equals("Remove")) {
                         return this.mapRemove(node.intValue());
                     }
                 case "Add":
