@@ -30,16 +30,50 @@ public class RaftCrashesActionMapper extends BaseActionMapper{
         return null;
     }
 
-    protected Action mapUpdateState(int i, String state) {
+    protected Action mapUpdateState(int i, String state, int lastIndex, int commitIndex) {
         if (!this.enabledActionMap.containsKey("UpdateState")) {
             return null;
         }
         for (Action a : this.enabledActionMap.get("UpdateState")) {
             Map<String, Value> params = a.getParams();
-            if (params.containsKey("i") && params.containsKey("s")) {
+            IntValue i_val = (IntValue) params.get("i");
+            StringValue s_val = (StringValue) params.get("s");
+            IntValue li_val = (IntValue) params.get("li");
+            IntValue ci_val = (IntValue) params.get("ci");
+            if (i_val.val == i && s_val.val.equals(state) && li_val.val == lastIndex && ci_val.val == commitIndex) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    protected Action mapUpdateLeaderTerm(int i, int term) {
+        if (!this.enabledActionMap.containsKey("UpdateLeaderTerm")) {
+            return null;
+        }
+        for (Action a : this.enabledActionMap.get("UpdateLeaderTerm")) {
+            Map<String, Value> params = a.getParams();
+            if (params.containsKey("i") && params.containsKey("t")) {
                 IntValue i_val = (IntValue) params.get("i");
-                StringValue s_val = (StringValue) params.get("s");
-                if (i_val.val == i && s_val.val.equals(state)) {
+                IntValue t_val = (IntValue) params.get("t");
+                if (i_val.val == i && t_val.val ==term) {
+                    return a;
+                }
+            }
+        }
+        return null;
+    }
+
+    protected Action mapUpdateSnapshot(int i, int sIndex) {
+        if (!this.enabledActionMap.containsKey("UpdateSnapshot")) {
+            return null;
+        }
+        for (Action a : this.enabledActionMap.get("UpdateSnapshot")) {
+            Map<String, Value> params = a.getParams();
+            if (params.containsKey("i") && params.containsKey("si")) {
+                IntValue i_val = (IntValue) params.get("i");
+                IntValue si_val = (IntValue) params.get("si");
+                if (i_val.val == i && si_val.val ==sIndex) {
                     return a;
                 }
             }
@@ -66,15 +100,31 @@ public class RaftCrashesActionMapper extends BaseActionMapper{
     public Action mapAction(AbstractAction abstractAction) {
         try {
             String name = abstractAction.name;
-            Integer i = Integer.parseInt((String) abstractAction.params.get("i"));
             switch(name) {
+                case "MembershipChange":
+                    String action = (String) abstractAction.params.get("action");
+                    Double node = (Double) abstractAction.params.get("node");
+                    if (action == "Add") {
+                        return this.mapAdd(node.intValue());
+                    } else if (action == "Remove") {
+                        return this.mapRemove(node.intValue());
+                    }
                 case "Add":
-                    return this.mapAdd(i);
+                    Double i = (Double) abstractAction.params.get("i");
+                    return this.mapAdd(i.intValue());
                 case "UpdateState":
+                    i = (Double) abstractAction.params.get("i");
                     String state = (String) abstractAction.params.get("state");
-                    return this.mapUpdateState(i, state);
+                    Double li = (Double) abstractAction.params.get("last_index");
+                    Double ci = (Double) abstractAction.params.get("commit_index");
+                    return this.mapUpdateState(i.intValue(), state, li.intValue(), ci.intValue());
+                case "BecomeLeader":
+                    node = (Double) abstractAction.params.get("node");
+                    Double term = (Double) abstractAction.params.get("term");
+                    return this.mapUpdateLeaderTerm(node.intValue(), term.intValue());
                 case "Remove":
-                    return this.mapRemove(i);
+                    i = (Double) abstractAction.params.get("i");
+                    return this.mapRemove(i.intValue());
             }
         } catch (Exception e) {
 
