@@ -16,8 +16,8 @@ import com.sun.net.httpserver.*;
 import tlc2.controlled.protocol.ActionMapper;
 import tlc2.controlled.protocol.ActionMapperFactory;
 import tlc2.controlled.protocol.ActionWrapper;
+import tlc2.controlled.protocol.DefaultStateAbstractor;
 import tlc2.controlled.protocol.StateAbstractor;
-import tlc2.controlled.protocol.StateAbstractorFactory;
 import tlc2.output.EC;
 import tlc2.output.MP;
 import tlc2.tool.Action;
@@ -36,7 +36,7 @@ public class TLCServer extends TLC {
 
     private ITool tool;
     private ActionMapper mapper;
-//    private StateAbstractor abstractor;
+    private StateAbstractor abstractor;
 
     public TLCServer() {
         super();
@@ -45,7 +45,7 @@ public class TLCServer extends TLC {
     public void init() {
         this.tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
         this.mapper = ActionMapperFactory.getMapper(this.mapperParams, Arrays.asList(this.tool.getActions()), this.tool.getRootName());
-//        this.abstractor = StateAbstractorFactory.getStateAbstractor(mapperParams);
+        this.abstractor = new DefaultStateAbstractor();
         FP64.Init(fpIndex);
     }
 
@@ -65,7 +65,7 @@ public class TLCServer extends TLC {
             while(nextStates.empty()) {
                 ActionWrapper nextAction = actionsToRun.remove();
                 if(nextAction.isReset() || nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
-                    return statesVisited;
+                    return this.abstractor.doAbstraction(statesVisited);
                 }
                 nextStates = nextStates.addElements(tool.getNextStates(nextAction.action, curState));
                 if(nextStates.empty()) {
