@@ -112,8 +112,11 @@ public class RaftCrashesActionMapper extends BaseActionMapper{
                     } else if (action.equals("Remove")) {
                         return this.mapRemove(node.intValue());
                     }
-                case "UpdateState":
+                case "Add":
                     Double i = (Double) abstractAction.params.get("i");
+                    return this.mapAdd(i.intValue());
+                case "UpdateState":
+                    i = (Double) abstractAction.params.get("i");
                     String state = (String) abstractAction.params.get("state");
                     Double li = (Double) abstractAction.params.get("last_index");
                     Double ci = (Double) abstractAction.params.get("commit_index");
@@ -126,6 +129,9 @@ public class RaftCrashesActionMapper extends BaseActionMapper{
                     node = (Double) abstractAction.params.get("node");
                     Double si = (Double) abstractAction.params.get("snapshot_index");
                     return this.mapUpdateSnapshot(node.intValue(), si.intValue());
+                case "Remove":
+                    i = (Double) abstractAction.params.get("i");
+                    return this.mapRemove(i.intValue());
             }
         } catch (Exception e) {
 

@@ -72,6 +72,25 @@ public class RaftActionMapper extends BaseActionMapper{
                     key = String.format("%s_%d_%d_%d_%b_%d", name, iP.val, jP.val, termP.val, successP.val, mIndexP.val);
                     mappedActions.put(key, a);
                     break;
+                case "UpdateSnapshotIndex":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    IntValue siP = (IntValue) params.get("si");
+                    key = String.format("%s_%d_%d", name, iP.val, siP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "AddToActive":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    key = String.format("%s_%d", name, iP.val);
+                    mappedActions.put(key, a);
+                    break;
+                case "RemoveFromActive":
+                    params = a.getParams();
+                    iP = (IntValue) params.get("i");
+                    key = String.format("%s_%d", name, iP.val);
+                    mappedActions.put(key, a);
+                    break;
             }
         }
     }
@@ -222,6 +241,30 @@ public class RaftActionMapper extends BaseActionMapper{
             if (this.mappedActions.containsKey(key)) {
                 return this.mappedActions.get(key);
             }
+        }
+        return null;
+    }
+
+    protected Action mapUpdateSnapshotIndex(int i, int si) {
+        String key = String.format("%s_%d_%d", "UpdateSnapshotIndex", i, si);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        }
+        return null;
+    }
+
+    protected Action mapAddToActive(int i) {
+        String key = String.format("AddToActive_%d", i);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
+        }
+        return null;
+    }
+
+    protected Action mapRemoveFromActive(int i) {
+        String key = String.format("RemoveFromActive_%d", i);
+        if (this.mappedActions.containsKey(key)) {
+            return this.mappedActions.get(key);
         }
         return null;
     }
