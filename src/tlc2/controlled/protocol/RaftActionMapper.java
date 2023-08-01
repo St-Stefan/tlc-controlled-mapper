@@ -272,6 +272,27 @@ public class RaftActionMapper extends BaseActionMapper{
     public Action mapAction(AbstractAction abstractAction) {
         try {
             switch (abstractAction.name) {
+                case "MembershipChange":
+                    String action = (String) abstractAction.params.get("action");
+                    if (action == null ) {
+                        return null;
+                    }
+                    Double node = (Double) abstractAction.params.get("node");
+                    if (action.equals("Add")) {
+                        return this.mapAddToActive(node.intValue());
+                    } else if (action.equals("Remove")) {
+                        return this.mapRemoveFromActive(node.intValue());
+                    }
+                case "Add":
+                    Double i = (Double) abstractAction.params.get("i");
+                    return this.mapAddToActive(i.intValue());
+                case "UpdateSnapshot":
+                    node = (Double) abstractAction.params.get("node");
+                    Double si = (Double) abstractAction.params.get("snapshot_index");
+                    return this.mapUpdateSnapshotIndex(node.intValue(), si.intValue());
+                case "Remove":
+                    i = (Double) abstractAction.params.get("i");
+                    return this.mapRemoveFromActive(i.intValue());
                 case "ClientRequest":
                     Optional<Double> requestID = this.getParam(abstractAction, "request");
                     Optional<Double> leader = this.getParam(abstractAction, "leader");
@@ -428,7 +449,7 @@ public class RaftActionMapper extends BaseActionMapper{
                             );
                     }
                 case "InvokedAction":
-                    String action = (String) abstractAction.params.get("action"); 
+                    action = (String) abstractAction.params.get("action"); 
                     switch (action) {
                         case "BecomeLeader":
                             nodeID = this.getParam(abstractAction, "actor_id");
