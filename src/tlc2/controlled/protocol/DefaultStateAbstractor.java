@@ -7,14 +7,13 @@ public class DefaultStateAbstractor implements StateAbstractor {
     public List<TLCState> doAbstraction(List<TLCState> states) {
         List<TLCState> uniqueStates = new ArrayList<>();
         int i = 0, j = 1;
-        for (; j < states.size(); ) {
+        for (; j < states.size(); j++) {
             long iFingerprint = states.get(i).fingerPrint();
             long jFingerprint = states.get(j).fingerPrint();
             if (iFingerprint != jFingerprint) {
                 uniqueStates.add(states.get(i));
                 i = j;
             }
-            j = j+1;
         }
         if (i == states.size() -1) {
             uniqueStates.add(states.get(i));

@@ -3,12 +3,16 @@ package tlc2.controlled.protocol;
 import java.util.*;
 import tlc2.tool.TLCState;
 import tlc2.value.IValue;
+import tlc2.value.impl.FcnRcdValue;
+import tlc2.value.impl.IntValue;
+import tlc2.value.impl.StringValue;
 import util.UniqueString;
 
-public class RaftStateAbstractor implements StateAbstractor{
+public class RaftStateAbstractor extends DefaultStateAbstractor implements StateAbstractor{
     Map<String, String> params;
 
     public RaftStateAbstractor(Map<String, String> params) {
+        super();
         this.params = params;
     }
 
@@ -25,7 +29,6 @@ public class RaftStateAbstractor implements StateAbstractor{
                 if (valOne.compareTo(valTwo) != 0) {
                     result.add(val.getKey());
                 }
-                twoValues.remove(val.getKey());
             }
         }
 
@@ -38,25 +41,67 @@ public class RaftStateAbstractor implements StateAbstractor{
 
     boolean isDifferent(TLCState cur, TLCState prev) {
         // If the difference is only in term numbers of non leaders then false
-        List<UniqueString> diffKeys = diff(cur, prev);
+        FcnRcdValue currentTerms = (FcnRcdValue) cur.getVals().get(UniqueString.of("currentTerm"));
+        FcnRcdValue prevTerms = (FcnRcdValue) prev.getVals().get(UniqueString.of("currentTerm"));
 
-        return false;
+        FcnRcdValue curStates = (FcnRcdValue) cur.getVals().get(UniqueString.of("state"));
+        FcnRcdValue prevStates = (FcnRcdValue) prev.getVals().get(UniqueString.of("state"));
+
+        int curLeader = -1;
+        for (int i = 0; i < curStates.values.length; i++) {
+            StringValue s = (StringValue) curStates.values[i];
+            if(s.val.equals("leader")) {
+                curLeader = i;
+                break;
+            }
+        }
+
+        int prevLeader = -1;
+        for (int i = 0; i < prevStates.values.length; i++) {
+            StringValue s = (StringValue) prevStates.values[i];
+            if(s.val.equals("leader")) {
+                prevLeader = i;
+                break;
+            }
+        }
+
+        if (curLeader == -1 && prevLeader == -1) {
+            return false;
+        }
+
+        if ( curLeader != -1 && prevLeader != -1) {
+            IntValue curLeaderTerm = (IntValue) currentTerms.values[curLeader];
+            IntValue prevLeaderTerm = (IntValue) prevTerms.values[prevLeader];
+
+            if( curLeaderTerm.val == prevLeaderTerm.val) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
+    @Override
     public List<TLCState> doAbstraction(List<TLCState> states) {
+        List<TLCState> superResult = super.doAbstraction(states);
         List<TLCState> result = new ArrayList<>();
-        if (states.size() == 0) {
+        if (superResult.size() == 0) {
             return states;
         }
-        result.add(states.get(0));
-        for(int i = 1; i < states.size(); i++) {
-            TLCState cur = states.get(i);
-            TLCState prev = states.get(i-1);
+        result.add(superResult.get(0));
+        int i = 0, j = 1;
+        for(; j < superResult.size(); j++) {
+            TLCState cur = superResult.get(j);
+            TLCState prev = superResult.get(i);
 
             // If cur is not different from previous then don't add current
             if (isDifferent(cur, prev)) {
                 result.add(cur);
+                i = j;
             }
+        }
+        if (i == superResult.size() -1) {
+            result.add(superResult.get(i));
         }
         return result;
     }

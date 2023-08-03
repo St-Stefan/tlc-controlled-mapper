@@ -272,6 +272,9 @@ public class RaftActionMapper extends BaseActionMapper{
     public Action mapAction(AbstractAction abstractAction) {
         try {
             switch (abstractAction.name) {
+                case "AdvanceCommitIndex":
+                    Double i = (Double) abstractAction.params.get("i");
+                    return this.mapAdvanceCommitIndex(i.intValue());
                 case "MembershipChange":
                     String action = (String) abstractAction.params.get("action");
                     if (action == null ) {
@@ -284,7 +287,7 @@ public class RaftActionMapper extends BaseActionMapper{
                         return this.mapRemoveFromActive(node.intValue());
                     }
                 case "Add":
-                    Double i = (Double) abstractAction.params.get("i");
+                    i = (Double) abstractAction.params.get("i");
                     return this.mapAddToActive(i.intValue());
                 case "UpdateSnapshot":
                     node = (Double) abstractAction.params.get("node");
