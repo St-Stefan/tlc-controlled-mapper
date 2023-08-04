@@ -6,14 +6,17 @@ import tlc2.value.IValue;
 import tlc2.value.impl.FcnRcdValue;
 import tlc2.value.impl.IntValue;
 import tlc2.value.impl.StringValue;
+import tlc2.value.impl.Value;
 import util.UniqueString;
 
 public class RaftStateAbstractor extends DefaultStateAbstractor implements StateAbstractor{
-    Map<String, String> params;
+    private boolean isAbstract;
+
+    private static Set<String> keysToIgnore = Set.of("votesGranted", "votesResponded", "votedFor");
 
     public RaftStateAbstractor(Map<String, String> params) {
         super();
-        this.params = params;
+        this.isAbstract = params.containsKey("abstract");
     }
 
     List<UniqueString> diff(TLCState one, TLCState two) {
@@ -32,53 +35,49 @@ public class RaftStateAbstractor extends DefaultStateAbstractor implements State
             }
         }
 
-        for (Map.Entry<UniqueString,IValue> val: twoValues.entrySet()) {
-            result.add(val.getKey());
-        }
-
         return result;
     }
 
     boolean isDifferent(TLCState cur, TLCState prev) {
-        // If the difference is only in term numbers of non leaders then false
-        FcnRcdValue currentTerms = (FcnRcdValue) cur.getVals().get(UniqueString.of("currentTerm"));
-        FcnRcdValue prevTerms = (FcnRcdValue) prev.getVals().get(UniqueString.of("currentTerm"));
+        List<UniqueString> diffValues = this.diff(cur, prev);
+        if (!this.isAbstract) {
+            return diffValues.size() > 0;
+        }
 
-        FcnRcdValue curStates = (FcnRcdValue) cur.getVals().get(UniqueString.of("state"));
-        FcnRcdValue prevStates = (FcnRcdValue) prev.getVals().get(UniqueString.of("state"));
-
-        int curLeader = -1;
-        for (int i = 0; i < curStates.values.length; i++) {
-            StringValue s = (StringValue) curStates.values[i];
-            if(s.val.equals("leader")) {
-                curLeader = i;
-                break;
+        List<UniqueString> actualDiffValues = new ArrayList<>();
+        for (UniqueString k : diffValues) {
+            if(!keysToIgnore.contains(k.toString())) {
+                actualDiffValues.add(k);
             }
         }
 
-        int prevLeader = -1;
-        for (int i = 0; i < prevStates.values.length; i++) {
-            StringValue s = (StringValue) prevStates.values[i];
-            if(s.val.equals("leader")) {
-                prevLeader = i;
-                break;
+        return actualDiffValues.size() > 0;
+    }
+
+    private TLCState rewrite(TLCState s) {
+        if (!this.isAbstract) {
+            return s;
+        }
+
+        FcnRcdValue currentTerms = (FcnRcdValue) s.getVals().get(UniqueString.of("currentTerm"));
+        FcnRcdValue states = (FcnRcdValue) s.getVals().get(UniqueString.of("state"));
+
+        Value[] newCurrentTermValues = new IntValue[currentTerms.values.length];
+        Value[] newStateValues = new StringValue[states.values.length];
+        for (int i = 0; i < states.values.length; i++) {
+            StringValue state = (StringValue) states.values[i];
+            if (state.val.equals("leader")) {
+                newCurrentTermValues[i] = currentTerms.values[i];
+                newStateValues[i] = states.values[i];
+            } else {
+                newCurrentTermValues[i] = IntValue.gen(0);
+                newStateValues[i] = new StringValue("follower");
             }
         }
 
-        if (curLeader == -1 && prevLeader == -1) {
-            return false;
-        }
-
-        if ( curLeader != -1 && prevLeader != -1) {
-            IntValue curLeaderTerm = (IntValue) currentTerms.values[curLeader];
-            IntValue prevLeaderTerm = (IntValue) prevTerms.values[prevLeader];
-
-            if( curLeaderTerm.val == prevLeaderTerm.val) {
-                return false;
-            }
-        }
-
-        return true;
+        s.bind(UniqueString.of("currentTerm"), new FcnRcdValue(currentTerms, newCurrentTermValues));
+        s.bind(UniqueString.of("state"), new FcnRcdValue(states, newStateValues));
+        return s;
     }
 
     @Override
@@ -91,12 +90,12 @@ public class RaftStateAbstractor extends DefaultStateAbstractor implements State
         result.add(superResult.get(0));
         int i = 0, j = 1;
         for(; j < superResult.size(); j++) {
-            TLCState cur = superResult.get(j);
-            TLCState prev = superResult.get(i);
+            TLCState cur = rewrite(superResult.get(j));
+            TLCState prev = rewrite(superResult.get(i));
 
             // If cur is not different from previous then don't add current
             if (isDifferent(cur, prev)) {
-                result.add(cur);
+                result.add(prev);
                 i = j;
             }
         }

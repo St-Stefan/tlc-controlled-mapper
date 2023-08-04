@@ -69,7 +69,7 @@ public class FcnRcdValue extends Value implements Applicable, IFcnRcdValue {
 	  this.cm = cm;
   }
 
-  private FcnRcdValue(FcnRcdValue fcn, Value[] values) {
+  public FcnRcdValue(FcnRcdValue fcn, Value[] values) {
     this.domain = fcn.domain;
     this.intv = fcn.intv;
     this.values = values;
