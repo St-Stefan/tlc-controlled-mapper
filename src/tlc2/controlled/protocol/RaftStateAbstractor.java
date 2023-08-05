@@ -87,7 +87,6 @@ public class RaftStateAbstractor extends DefaultStateAbstractor implements State
         if (superResult.size() == 0) {
             return states;
         }
-        result.add(superResult.get(0));
         int i = 0, j = 1;
         for(; j < superResult.size(); j++) {
             TLCState cur = rewrite(superResult.get(j));
