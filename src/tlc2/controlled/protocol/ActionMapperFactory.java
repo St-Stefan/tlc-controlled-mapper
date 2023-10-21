@@ -25,6 +25,8 @@ public class ActionMapperFactory {
                 isAbstract = true;
             }
             return new RaftActionMapper(enabledActions, isAbstract);
+        } else if (model.contains("MB") || name.equalsIgnoreCase("mb")) {
+            return new MBActionMapper(enabledActions);
         }
         return new DefaultActionMapper(enabledActions);
     }
