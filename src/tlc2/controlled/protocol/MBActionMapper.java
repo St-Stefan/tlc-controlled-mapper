@@ -77,8 +77,8 @@ public class MBActionMapper extends BaseActionMapper {
         return this.mapWAction("WorkerRegister", worker);
     }
 
-    protected Action mapMasterRegisterWorker() {
-        return this.mapPAction("MasterRegisterWorker");
+    protected Action mapMasterRegisterWorker(int worker) {
+        return this.mapWAction("MasterRegisterWorker", worker);
     }
 
     protected Action mapTerminatorRegister() {
@@ -112,16 +112,15 @@ public class MBActionMapper extends BaseActionMapper {
                 case "SendEvent":
                     String event = (String) abstractAction.params.get("event");
                     switch (event) {
-                        case "ExampleApp.RegisterWorkerEvent":
+                        case "MicroBenchmark.RegisterWorkerEvent":
                             Optional<Integer> workerId = getWorkerId(abstractAction);
                             if (workerId.isEmpty()) {
                                 return null;
                             }
                             int worker = workerId.get();
                             return this.mapWorkerRegister(worker);
-                        case "ExampleApp.RegisterTerminatorEvent":
+                        case "MicroBenchmark.RegisterTerminatorEvent":
                             return this.mapTerminatorRegister();
-                        
                         }
                     break;
                 case "ReceiveEvent":
@@ -132,25 +131,20 @@ public class MBActionMapper extends BaseActionMapper {
                     }
                     int w_val = workerId.get();
                     switch (event) {
-                        case "ExampleApp.ExecuteEvent":
+                        case "MicroBenchmark.ExecuteEvent":
                             int r_val = (int)((double) abstractAction.params.get("request_id"));
                             return this.mapWorkerRcvExecute(w_val, r_val);
-                        case "ExampleApp.TerminateEvent":
+                        case "MicroBenchmark.TerminateEvent":
                             return this.mapTerminatorRcvTerminate(w_val);
-                        case "ExampleApp.FlushEvent":
+                        case "MicroBenchmark.FlushEvent":
                             return this.mapWorkerRcvFlush(w_val);
-                        case "ExampleApp.RequestEvent":
-                            r_val = (int)((double) abstractAction.params.get("worker_id_2"));
+                        case "MicroBenchmark.RequestEvent":
+                            r_val = (int)((double) abstractAction.params.get("request_id"));
                             return this.mapMasterRcvRequest(w_val, r_val);
-                    }
-                    break;
-                    case "InvokedAction":
-                        String action = (String) abstractAction.params.get("action"); 
-                        switch (action) {
-                            case "HandleRegisterWorker":
-                                return mapMasterRegisterWorker();
-                            case "HandleRegisterTerminator":
-                                return mapMasterRegisterTerminator();
+                        case "MicroBenchmark.RegisterWorkerEvent":
+                            return mapMasterRegisterWorker(w_val);
+                        case "MicroBenchmark.RegisterTerminatorEvent":
+                            return mapMasterRegisterTerminator();
                     }
                     break;
             }
