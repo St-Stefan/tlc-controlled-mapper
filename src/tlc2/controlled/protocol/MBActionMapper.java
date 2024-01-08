@@ -143,7 +143,12 @@ public class MBActionMapper extends BaseActionMapper {
                             return this.mapMasterRcvRequest(w_val, r_val);
                         case "MicroBenchmark.RegisterWorkerEvent":
                             return mapMasterRegisterWorker(w_val);
-                        case "MicroBenchmark.RegisterTerminatorEvent":
+                    }
+                    break;
+                case "InvokedAction":
+                    event = (String) abstractAction.params.get("action");
+                    switch (event) {
+                        case "HandleRegisterTerminator":
                             return mapMasterRegisterTerminator();
                     }
                     break;
