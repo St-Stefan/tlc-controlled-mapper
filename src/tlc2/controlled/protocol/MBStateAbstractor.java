@@ -2,25 +2,29 @@ package tlc2.controlled.protocol;
 
 import java.util.*;
 import tlc2.tool.TLCState;
+import tlc2.tool.ConcurrentTLCTrace.Record;
 import tlc2.value.IValue;
 import tlc2.value.impl.FcnRcdValue;
 import tlc2.value.impl.IntValue;
+import tlc2.value.impl.RecordValue;
+import tlc2.value.impl.SetEnumValue;
 import tlc2.value.impl.StringValue;
 import tlc2.value.impl.Value;
 import util.UniqueString;
 
-public class RaftStateAbstractor extends DefaultStateAbstractor implements StateAbstractor{
+
+public class MBStateAbstractor extends DefaultStateAbstractor implements StateAbstractor {
     private boolean isAbstract;
 
-    private static Set<String> keysToIgnore = Set.of("votesGranted", "votesResponded", "votedFor");
 
-    public RaftStateAbstractor(Map<String, String> params) {
+
+    public MBStateAbstractor(Map<String, String> params) {
         super();
         this.isAbstract = params.containsKey("abstract");
-        System.out.println("New RaftStateAbstractor instantiated.");
+        System.out.println("New MBStateAbstractor instantiated.");
         System.out.println("Abstract: " + this.isAbstract);
     }
-
+    
     List<UniqueString> diff(TLCState one, TLCState two) {
         List<UniqueString> result = new ArrayList<>();
         Map<UniqueString, IValue> oneValues = one.getVals();
@@ -42,43 +46,36 @@ public class RaftStateAbstractor extends DefaultStateAbstractor implements State
 
     boolean isDifferent(TLCState cur, TLCState prev) {
         List<UniqueString> diffValues = this.diff(cur, prev);
-        if (!this.isAbstract) {
-            return diffValues.size() > 0;
-        }
-
-        List<UniqueString> actualDiffValues = new ArrayList<>();
-        for (UniqueString k : diffValues) {
-            if(!keysToIgnore.contains(k.toString())) {
-                actualDiffValues.add(k);
-            }
-        }
-
-        return actualDiffValues.size() > 0;
+        return diffValues.size() > 0;
     }
 
     private TLCState rewrite(TLCState s) {
-        if (!this.isAbstract) {
+        if (!this.isAbstract)
             return s;
-        }
-
-        FcnRcdValue currentTerms = (FcnRcdValue) s.getVals().get(UniqueString.of("currentTerm"));
-        FcnRcdValue states = (FcnRcdValue) s.getVals().get(UniqueString.of("state"));
-
-        Value[] newCurrentTermValues = new IntValue[currentTerms.values.length];
-        Value[] newStateValues = new StringValue[states.values.length];
-        for (int i = 0; i < states.values.length; i++) {
-            StringValue state = (StringValue) states.values[i];
-            if (state.val.equals("leader")) {
-                newCurrentTermValues[i] = currentTerms.values[i];
-                newStateValues[i] = states.values[i];
-            } else {
-                newCurrentTermValues[i] = IntValue.gen(0);
-                newStateValues[i] = new StringValue("follower");
+        
+        SetEnumValue currentWorkers = (SetEnumValue) s.getVals().get(UniqueString.of("registeredWorkers"));
+        SetEnumValue currentMessages = (SetEnumValue) s.getVals().get(UniqueString.of("msgs"));
+        // System.out.println("Rewriting...");
+        // System.out.println(currentMessages.toString());
+        // System.out.println(currentMessages.getTypeString());
+        Value[] newCurrentWorkersValues = new IntValue[currentWorkers.elems.size()];
+        for (int i = 0; i < currentWorkers.elems.size(); i++) 
+            newCurrentWorkersValues[i] = IntValue.gen(1);
+        
+        // System.out.println("Current messages:");
+        Value[] elems = currentMessages.elems.toArray();
+        for (int i = 0; i < elems.length; i++) {
+            // RecordValue elem = (RecordValue) elems[i];
+            // UniqueString[] names = elem.names;
+            for (int j = 0; j < (((RecordValue) elems[i]).names.length); j++) {
+                if (((RecordValue) elems[i]).names[j].toString().equals("worker")) {
+                    ((RecordValue) elems[i]).values[j] = IntValue.gen(1);
+                }
             }
         }
-
-        s.bind(UniqueString.of("currentTerm"), new FcnRcdValue(currentTerms, newCurrentTermValues));
-        s.bind(UniqueString.of("state"), new FcnRcdValue(states, newStateValues));
+                
+        s.bind(UniqueString.of("registeredWorkers"), new SetEnumValue(newCurrentWorkersValues, true));
+        s.bind(UniqueString.of("msgs"), new SetEnumValue(elems, true));
         return s;
     }
 
@@ -89,20 +86,23 @@ public class RaftStateAbstractor extends DefaultStateAbstractor implements State
         if (superResult.size() == 0) {
             return states;
         }
+
         int i = 0, j = 1;
-        for(; j < superResult.size(); j++) {
+        for (; j < superResult.size(); j++) {
             TLCState cur = rewrite(superResult.get(j));
             TLCState prev = rewrite(superResult.get(i));
 
-            // If cur is not different from previous then don't add current
             if (isDifferent(cur, prev)) {
                 result.add(prev);
                 i = j;
             }
+
         }
-        if (i == superResult.size() -1) {
+
+        if (i == superResult.size() - 1) {
             result.add(superResult.get(i));
         }
+
         return result;
     }
 }

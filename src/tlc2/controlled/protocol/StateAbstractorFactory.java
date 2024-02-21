@@ -12,6 +12,8 @@ public class StateAbstractorFactory {
          }
          if(name.equalsIgnoreCase("raft")){
              return new RaftStateAbstractor(params);
+         } else if (name.equalsIgnoreCase("mb")){
+             return new MBStateAbstractor(params);
          }
         return new DefaultStateAbstractor();
     }

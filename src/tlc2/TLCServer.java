@@ -173,8 +173,11 @@ public class TLCServer extends TLC {
             tlcServer.setResolver(new SimpleFilenameToStream());
         }
         tlcServer.init();
-        
+
         int serverPort = 2023;
+        if (tlcServer.mapperParams.containsKey("port"))
+            serverPort = Integer.parseInt(tlcServer.mapperParams.get("port"));
+
         int index = 0;
 		while (index < args.length) {
             if (args[index].equals("-serverport")) {
