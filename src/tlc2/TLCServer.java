@@ -37,6 +37,7 @@ public class TLCServer extends TLC {
     private ITool tool;
     private ActionMapper mapper;
     private StateAbstractor abstractor;
+    private TLCState currentState;
 
     public TLCServer() {
         super();
@@ -46,37 +47,73 @@ public class TLCServer extends TLC {
         this.tool = new FastTool(mainFile, configFile, resolver, Tool.Mode.Simulation, params);
         this.mapper = ActionMapperFactory.getMapper(this.mapperParams, Arrays.asList(this.tool.getActions()), this.tool.getRootName());
         this.abstractor = StateAbstractorFactory.getStateAbstractor(this.mapperParams);
+        this.currentState = null;
         FP64.Init(fpIndex);
     }
 
-    public List<TLCState> simulate(String input) throws Exception{
-        
-        StateVec initStates = computeInitStates(this.tool);
-		Queue<ActionWrapper> actionsToRun = new ArrayDeque<ActionWrapper>();
-		List<TLCState> statesVisited = new ArrayList<TLCState>();
+    public List<TLCState> simulate(String input, boolean is_reset) throws Exception{
+        if (is_reset) {
+            StateVec initStates = computeInitStates(this.tool);
+            Queue<ActionWrapper> actionsToRun = new ArrayDeque<ActionWrapper>();
+            List<TLCState> statesVisited = new ArrayList<TLCState>();
 
-        StateVec nextStates = new StateVec(1);
-        TLCState curState = randomState(initStates);
+            StateVec nextStates = new StateVec(1);
+            TLCState curState = randomState(initStates);
 
-        statesVisited.add(curState);
-        actionsToRun.addAll(this.mapper.mapListOfActions(input));
-        while(true) {
-            nextStates.clear();
-            while(nextStates.empty()) {
+            statesVisited.add(curState);
+            actionsToRun.addAll(this.mapper.mapListOfActions(input));
+            while(true) {
+                nextStates.clear();
+                while(nextStates.empty()) {
+                    ActionWrapper nextAction = actionsToRun.remove();
+                    if(nextAction.isReset() || nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
+                        return this.abstractor.doAbstraction(statesVisited);
+                    }
+                    nextStates = nextStates.addElements(tool.getNextStates(nextAction.action, curState));
+                    if(nextStates.empty()) {
+                        statesVisited.add(curState);
+                    }
+                }
+                assert(nextStates.size() == 1);
+                final TLCState s1 = nextStates.elementAt(0);
+                if (s1 != null) {
+                    s1.execCallable();
+                    curState = s1;
+                }
+                statesVisited.add(curState);
+            }
+        } else {
+            if (this.currentState == null)
+                this.currentState = randomState(computeInitStates(this.tool));
+            TLCState curState = this.currentState;
+
+            StateVec nextStates = new StateVec(1);
+            Queue<ActionWrapper> actionsToRun = new ArrayDeque<ActionWrapper>();
+            List<TLCState> statesVisited = new ArrayList<TLCState>();
+            statesVisited.add(curState);
+            actionsToRun.addAll(this.mapper.mapListOfActions(input));
+            
+            while(actionsToRun.size() > 0) {
                 ActionWrapper nextAction = actionsToRun.remove();
                 if(nextAction.isReset() || nextAction.isQuit() || nextAction.action.equals(Action.UNKNOWN)) {
+                    this.currentState = null;
                     return this.abstractor.doAbstraction(statesVisited);
                 }
                 nextStates = nextStates.addElements(tool.getNextStates(nextAction.action, curState));
                 if(nextStates.empty()) {
                     statesVisited.add(curState);
                 }
+                
+                // assert(nextStates.size() == 1);
+                final TLCState s1 = nextStates.elementAt(0);
+                if (s1 != null) {
+                    s1.execCallable();
+                    curState = s1;
+                }
+                statesVisited.add(curState);
             }
-            assert(nextStates.size() == 1);
-            final TLCState s1 = nextStates.elementAt(0);
-            s1.execCallable();
-            curState = s1;
-            statesVisited.add(curState);
+            this.currentState = curState;
+            return this.abstractor.doAbstraction(statesVisited);
         }
     }
 
@@ -204,7 +241,11 @@ public class TLCServer extends TLC {
                     try {
                         byte[] requestBytes = t.getRequestBody().readAllBytes();
                         String request = new String(requestBytes, StandardCharsets.UTF_8);
-                        List<TLCState> trace = tlcServer.simulate(request);
+                        boolean is_reset = true;
+                        if (tlcServer.mapperParams.containsKey("not_reset"))
+                            is_reset = false;
+                            
+                        List<TLCState> trace = tlcServer.simulate(request, is_reset);
                         List<String> stringTrace = new ArrayList<>();
                         List<Long> fingerprintTrace = new ArrayList<>();
                         for( TLCState state : trace) {
