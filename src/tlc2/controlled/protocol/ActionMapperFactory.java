@@ -11,7 +11,7 @@ public class ActionMapperFactory {
         if(params.containsKey("name")) {
             name = params.get("name");
         }
-        if (model.contains("TPC") || name.equalsIgnoreCase("tpc")) {
+        if (model.contains("2PC") || name.equalsIgnoreCase("2pc") || model.contains("TPCL") || name.equalsIgnoreCase("TPCL")) {
             boolean isAbstract = false;
             if(params.containsKey("abstract")) {
                 isAbstract = true;
