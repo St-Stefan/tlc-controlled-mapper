@@ -232,6 +232,15 @@ public class TLCServer extends TLC {
         }
         try {
             HttpServer httpServer = HttpServer.create(new InetSocketAddress(serverPort), 0);
+            httpServer.createContext("/health", new HttpHandler() {
+                public void handle(HttpExchange t) throws IOException {
+                    String response = "Ok";
+                    t.sendResponseHeaders(200, response.length());
+                    OutputStream responseStream = t.getResponseBody();
+                    responseStream.write(response.getBytes());
+                    responseStream.close();
+                }
+            });
             httpServer.createContext("/execute", new HttpHandler() {
                 public void handle(HttpExchange t) throws IOException {
                     if(!t.getRequestMethod().equalsIgnoreCase("POST")) {
