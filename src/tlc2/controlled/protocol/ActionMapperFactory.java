@@ -11,23 +11,34 @@ public class ActionMapperFactory {
         if(params.containsKey("name")) {
             name = params.get("name");
         }
-        if (model.contains("2PC") || name.equalsIgnoreCase("2pc") || model.contains("TPCL") || name.equalsIgnoreCase("TPCL")) {
+        ActionMapper mapper;
+        if (model.contains("TPC") || name.equalsIgnoreCase("tpc")) {
             boolean isAbstract = false;
             if(params.containsKey("abstract")) {
                 isAbstract = true;
             }
-            return new TPCActionMapper(enabledActions, isAbstract);
+            mapper = new TPCActionMapper(enabledActions, isAbstract);
         } else if (model.contains("RAFT_CRASHES") || name.equalsIgnoreCase("raft_crashes")) {
-            return new RaftCrashesActionMapper(enabledActions);
+            mapper = new RaftCrashesActionMapper(enabledActions);
         } else if (model.contains("RAFT") || name.equalsIgnoreCase("raft")) {
             boolean isAbstract = false;
             if(params.containsKey("abstract")) {
                 isAbstract = true;
             }
-            return new RaftActionMapper(enabledActions, isAbstract);
+            mapper = new RaftActionMapper(enabledActions, isAbstract);
         } else if (model.contains("MB") || name.equalsIgnoreCase("mb")) {
-            return new MBActionMapper(enabledActions);
+            mapper = new MBActionMapper(enabledActions);
+        } else if (model.contains("RecoveryAndCommitSpec") || name.equalsIgnoreCase("RECOVERYCOMMIT")) {
+            mapper = new RecoveryCommitActionMapper(enabledActions);
+        } else if (model.contains("AccordSpec") || name.equalsIgnoreCase("ACCORDSPEC")) {
+            mapper = new FullSpecActionMapper(enabledActions);
+        } else if (model.contains("OnlyCommitSpec") || name.equalsIgnoreCase("COMMITSPEC")) {
+            mapper = new AccordActionMapper(enabledActions);
+        } else {
+            mapper = new DefaultActionMapper(enabledActions);
         }
-        return new DefaultActionMapper(enabledActions);
+
+        System.out.println("[ActionMapperFactory] Selected mapper: " + mapper.getClass().getSimpleName() + " (model=" + model + ", name=" + name + ")");
+        return mapper;
     }
 }
