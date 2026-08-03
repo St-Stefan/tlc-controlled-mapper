@@ -30,10 +30,8 @@ public class ActionMapperFactory {
             mapper = new MBActionMapper(enabledActions);
         } else if (model.contains("RecoveryAndCommitSpec") || name.equalsIgnoreCase("RECOVERYCOMMIT")) {
             mapper = new RecoveryCommitActionMapper(enabledActions);
-        } else if (model.contains("AccordSpec") || name.equalsIgnoreCase("ACCORDSPEC")) {
-            mapper = new FullSpecActionMapper(enabledActions);
-        } else if (model.contains("OnlyCommitSpec") || name.equalsIgnoreCase("COMMITSPEC")) {
-            mapper = new AccordActionMapper(enabledActions);
+        // TODO: FullSpecActionMapper (AccordSpec/ACCORDSPEC) not yet implemented
+        // TODO: AccordActionMapper (OnlyCommitSpec/COMMITSPEC) not yet implemented
         } else {
             mapper = new DefaultActionMapper(enabledActions);
         }
