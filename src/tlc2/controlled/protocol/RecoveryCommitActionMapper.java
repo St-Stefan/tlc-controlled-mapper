@@ -12,6 +12,8 @@ import java.util.Set;
 
 // Mapper for RecoveryAndCommitSpec/AccordSpec.tla.
 // Single-shard: all TLC actions take (p, id), wrappers are Handle*Wrapper.
+// Crash/Restart are the exception: they take only a process id, read the same
+// way as everywhere else in this file ("to", falling back to "p"; no "id").
 //
 // Java trace field conventions (post-flip):
 //   "type"   — message type (TypePreAccept, TypeStable, TypeCommit, TypeApply, TypeRead, ...)
@@ -76,6 +78,20 @@ public class RecoveryCommitActionMapper extends BaseActionMapper {
                 if (((IntValue) params.get("p")).val == p &&
                     ((IntValue) params.get("id")).val == id &&
                     ((IntValue) params.get("t")).val == t)
+                    return candidate;
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    // Crash(p)/Restart(p) take a single process-id parameter, unlike every other
+    // action in this spec which is keyed on (p, id).
+    private Action mapPAction(String key, int p) {
+        if (!enabledActionMap.containsKey(key)) return null;
+        for (Action candidate : enabledActionMap.get(key)) {
+            Map<String, Value> params = candidate.getParams();
+            try {
+                if (((IntValue) params.get("p")).val == p)
                     return candidate;
             } catch (Exception ignored) {}
         }
@@ -175,6 +191,12 @@ public class RecoveryCommitActionMapper extends BaseActionMapper {
     protected Action mapAction(AbstractAction a) {
         try {
             int to = intParam(a, "to", intParam(a, "p", -1));
+
+            // Crash/Restart have no "id" -- handle before the required-id parse below,
+            // which would otherwise throw and get logged as a mapping error.
+            if (a.name.equals("Crash") || a.name.equals("Restart"))
+                return mapPAction(a.name, to);
+
             int id = intParam(a, "id");
 
             switch (a.name) {
